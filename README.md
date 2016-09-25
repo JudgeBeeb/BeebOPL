@@ -36,4 +36,6 @@ Further down the line, I would like to see if the use of [Exomiser] (http://hem.
 
 I would also like to see if I could include **kieranhj**'s direct track loading routines using `OSWORD` (which he uses in his amazing [Mode 7 Video] (https://github.com/kieranhj/mode7-video) project). This may resolves the problems associated with `OSGBPB`.
 
+It would also be useful if there could be some kind of (software) master volume control.
+
 Finally, the utility provides no form of visual output. It would be nice to add something such as some Digital VU Meter Bars, or even just a progress counter.
