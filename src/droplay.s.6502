@@ -1,0 +1,337 @@
+ORG &1E00;								TO DO - different ORGs for different systems?
+
+INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
+
+\\zero page variablse
+irq1v_old=&70;			(&70 and &71)
+irq2v_old=&70;			(&70 and &71);					We don't need to intercept both IRQ vectors, it is always one or the other
+mem_ptr=&72;			(&72 and &73);					Location in memory currently being played
+delay=&74;				(&74 and &75);					Outstanding duration of current delay (if not zero)
+filename_address=&76;	(&76, &77, &78 and &79);		Pointer to the <fsp> parsed to the commmand
+load_page=&7A
+top_page=&7B;											This is the page above the top of the circular buffer (i.e. the buffer doesn't extend into top_page)
+flags=&7C;												Bit 0 - set if EOF reached
+													;	Bit 1 - set if end of tune reached
+													;	Bit 2 - set if escape was enabled before entry
+old_ADC=&7D
+evntv_old=&7E;			(&7E and &7F)
+
+.start
+	PHP:PHA:TXA:PHA:TYA:PHA;		preserve all the registers on the stack	
+
+\\intercept interrupts
+	SEI;							disable interrupts
+	LDA irq1v;						preserve existing IRQV
+	STA irq1v_old
+	LDA irq1v+1
+	STA irq1v_old+1
+	LDA #LO(irq_handler);			redirect IRQV to our IRQ handler
+	STA irq1v;						INTERCEPTING IRQ1V
+	LDA #HI(irq_handler)
+	STA irq1v+1
+	CLI;					re-enable interrupt
+	
+\\set up evntv for ESCAPE key
+	LDA evntv
+	STA evntv_old
+	LDA evntv+1
+	STA evntv_old+1
+	LDA #LO(event_handler)
+	STA evntv
+	LDA #HI(event_handler)
+	STA evntv+1
+	
+\\enable escape events
+	LDA #&0E;			enable event
+	LDX #6;				escape event
+	JSR osbyte
+	TXA
+	BEQ escape_not_set
+	LDA flags
+	ORA #%00000100;			set bit 2
+	STA flags
+.escape_not_set
+	
+\\TO DO CHECK FOR PRESENCE OF BeebOPL CARD
+
+\\get value for top_page
+	LDA #&84
+	JSR osbyte;						On exit, X and Y contain the HIMEM address (X=low byte, Y=high byte)
+	STY top_page
+
+\\set value for control_pages_to_read
+	TYA
+	SEC
+	SBC #HI(head_page)
+	STA control_pages_to_read
+	
+\\clear all flags
+	LDA #0
+	STA flags
+	
+\\get filename	
+	LDA #1
+	LDX #filename_address
+	LDY #0
+	JSR osargs
+	
+\\TO DO - check for a 'null' filename; if so, return syntax instructions and end
+	LDX #0
+	LDA (filename_address, X)
+	CMP #&0D;				termination string
+	BNE open_file
+	LDX #LO(syntax_error)
+	LDY #HI(syntax_error)
+	JMP error
+
+.open_file	
+	LDA #&40;				OPENIN
+	LDX filename_address
+	LDY filename_address+1
+	JSR osfind
+	BNE file_opened
+\\report error
+	LDX #LO(error_opening)
+	LDY #HI(error_opening)
+	JSR error
+.file_opened
+	STA control_file_handle
+
+\\test for escape before commencing long disk read
+	LDA flags
+	AND #%00000100; 			test bit 1 for escape
+	BEQ get_data
+	JMP end_game
+	
+\\get first few pages of data
+.get_data
+	LDA #4;					read block using PTR#
+	LDX #LO(control_block)
+	LDY #HI(control_block)
+	\\the other values are already pre-programmed in the control block
+	CLC
+	JSR osgbpb
+	BCC initial_flush;		carry flag is set on exit if attempted to read beyond EOF
+\\handle EOF
+	LDA flags
+	ORA #%00000001;			set bit 0
+	STA flags
+	
+\\TO DO HANDLE ERRORS WITH FILE FORMAT	
+
+\\YM3812 flush
+.initial_flush
+	JSR flush
+	
+\\setup delay
+	LDA #0
+	STA delay
+	STA delay+1
+	
+\\initialize mem_ptr
+	CLC
+	LDA #LO(cmd_table)
+	ADC cmd_table_size
+	STA mem_ptr
+	LDA #HI(cmd_table)
+	ADC #0
+	STA mem_ptr+1
+
+\\disable ADC sampling
+	LDA #&10
+	LDX #0;					no ADC sampling
+	JSR osbyte
+	STX old_ADC;			the old value is returned in X
+	
+\\setup timer (YM3812)
+	LDA #&04;					
+	STA ymaddr
+	LDA #&60;
+	STA ymdata;				mask (reset) both timers
+	LDA #&80;				reset IRQ (i.e. enable interrupts)
+	STA ymdata
+	LDA #&02;
+	STA ymaddr
+	LDA #244;				timer 1 has a resolution of 80 microseconds and counts up. So 244 = 256-244 = 12*80 = 960ms
+	STA ymdata
+	LDA #&04
+	STA ymaddr
+	LDA #&21;				turn on timer 1 (and mask timer 2)
+	STA ymdata
+
+.head_page_loop
+\\if end of tune need to go to end
+	LDA flags
+	AND #%00000010; 			test bit 1 for end of tune
+	BNE end_game
+\\if end of file need to bypass loop - IS THIS NECESSARY? - IF EOF ALREADY, WE ARE NEVER GOING TO GET PAST HEAD PAGE - YES IF FILE IS CORRUPT AND TOO SHORT
+	AND #%00000001; 			test bit 0 for EOF
+	BNE head_page_loop
+	LDA #HI(head_page)
+	CMP mem_ptr+1
+	BEQ head_page_loop
+	
+\\set load_page to beginning of buffer
+	LDA #HI(buff_page)
+	STA load_page
+	STA control_load_page
+	
+.main_loop
+\\TO DO what to do if player 'laps' the circular buffer ahead of slow disk reads
+\\if end of tune need to go to end
+	LDA flags
+	AND #%00000010; 			test bit 1 for end of tune
+	BNE end_game
+\\if end of file need to bypass loop - IS THIS NECESSARY? - IF EOF ALREADY, WE ARE NEVER GOING TO GET PAST HEAD PAGE - YES IF FILE IS CORRUPT AND TOO SHORT
+	LDA flags
+	AND #%00000001; 			test bit 0 for EOF
+	BNE main_loop
+	LDA load_page
+	CMP mem_ptr+1
+	BEQ main_loop
+	
+\\get next page
+	LDA #1;					set control_pages_to_read to 1
+	STA control_pages_to_read
+	LDA load_page
+	STA control_load_page
+	LDA #4;					read block using PTR#
+	LDX #LO(control_block)
+	LDY #HI(control_block)
+	\\the other values are already pre-programmed in the control block
+	CLC
+	JSR osgbpb
+	BCC inc_load_page;		carry flag is set on exit if attempted to read beyond EOF
+\\handle EOF
+	LDA flags
+	ORA #%00000001;			set bit 0
+	STA flags
+	
+.inc_load_page
+	INC load_page
+	
+\\check if we have gone beyond the buffer	
+	LDA load_page
+	CMP top_page
+	BNE main_loop
+	LDA #HI(buff_page)
+	STA load_page
+	JMP main_loop
+	
+.end_game
+\\restore escape status
+	LDA flags
+	CMP #%00000100;				check if bit 2 set
+	BNE leave_esc_set
+	LDA #&0D;					disable event
+	LDX #6;						escape event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.leave_esc_set
+	
+\\restore EVNTV
+	LDA evntv_old
+	STA evntv
+	LDA evntv_old+1
+	STA evntv+1
+	
+\\turn off YM3812 timer
+	LDA #&04					
+	STA ymaddr
+	LDA #&60
+	STA ymdata
+
+\\close file
+	LDA #0;					CLOSE
+	LDY control_file_handle
+	JSR osfind
+
+\\restore IRQV
+	SEI
+	LDA irq1v_old
+	STA irq1v
+	LDA irq1v_old+1
+	STA irq1v+1
+	CLI
+
+\\YM3812 flush
+	JSR flush
+
+\\re-enable ADC sampling
+	LDA #&10
+	LDX old_ADC
+	JSR osbyte
+
+\\recover all the registers	
+	PLA:TAY:PLA:TAX:PLA:PLP
+	
+	RTS; goodbye
+	
+\\YM3812 flush
+.flush
+	LDX #0
+	LDA #0
+.flush_loop
+	NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP; need a delay of at least 47 cycles before writing to YMADDR
+	STX ymaddr
+	NOP:NOP:NOP:NOP; need a delay of at least 7 cycles before writing to YMDATA
+	STA ymdata
+	INX
+	BNE flush_loop
+	RTS
+	
+INCLUDE "src\player.s.6502"
+INCLUDE "src\subroutines.s.6502"
+INCLUDE "src\error.s.6502"
+
+.control_block
+.control_file_handle; 	1 byte
+	EQUB &00
+.control_mem_addr;		4 bytes
+	EQUB &00
+.control_load_page
+	EQUB HI(head_page)
+	EQUW &0000
+.control_bytes_to_read; 4 bytes
+	EQUB &00
+.control_pages_to_read
+	EQUB &00
+	EQUW &0000
+.control_ptr
+	EQUD &00000000;		4 bytes
+
+.end
+
+ALIGN &100
+.head_page;							This page contains the standard DRO header, plus the first few bytes of the music
+\\dummy header
+.signature
+	EQUS "DBRAWOPL"
+.version_major
+	EQUW &0002
+.version_minor
+	EQUW &0000
+.length_pairs
+	EQUD &00000000;					Length of data in pairs (i.e. one YMADDR and one YMDATA would be measured as "1" pair)
+.length_MS
+	EQUD &00000000;					Length of the tune in milliseconds
+.hardware_type
+	EQUB &00;						0=OPL2, 1=DUAL OPL2, 2=OPL3
+.format
+	EQUB &00;						0=data commands and data interleaved, no other vzriants known
+.compression
+	EQUB &00;						0= no compression, no other variants known
+.short_delay_code
+	EQUB &00;						Code for delays of 256ms or less
+.long_delay_code
+	EQUB &00;	 					Code for delays of greater than 256ms (calculated in 256ms chunks)
+.cmd_table_size
+	EQUB &00;						Length in bytes of the command table
+.cmd_table;							The command table is always located &1A bytes into the header
+								;	Since the max size of the command table is &80 bytes, the music will begin at the most at &9A
+ALIGN &100
+.buff_page;							This is where the circular buffer (proper) starts. head_page must not be overwritten, because it contains the command table
+
+\ PUTFILE "music\SWARS", "SWARS", 0
+
+SAVE "DROPLAY", start, end

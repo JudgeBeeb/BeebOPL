@@ -1,0 +1,173 @@
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\							   \\
+\\  Event driven music player  \\
+\\							   \\
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+.irq_handler
+	LDA &FC:PHA:TXA:PHA:TYA:PHA
+	LDA ymaddr;						get status byte
+	AND #%11000000;					mask all but bits 7 and 6
+	BEQ done_irq;					if bits 6 and 7 not set, this interrupt is not for us
+
+\\reset IRQ
+	LDA #&04
+	STA ymaddr
+	LDA #&80
+	STA ymdata
+
+\\check for zero delay
+	LDA delay+1;					get MSB of delay
+	BNE decrement_delay;			and if it is not zero proceed to decrement
+	LDA delay;						get LSB of delay
+	BEQ player;						and if it is zero we should be playing tones
+
+.decrement_delay
+	LDA delay;						zero flag conditioned by LDA
+	BNE lsb_delay_dec;				if not zero, only LSB needs to be decremented
+	DEC delay+1;					decrement MSB
+.lsb_delay_dec
+	DEC delay;						decrement LSB
+
+.done_irq
+	PLA:TAY:PLA:TAX:PLA:STA &FC
+	JMP (irq1v_old)
+	
+.player
+\\if end of tune nothing to play
+	LDA flags
+	AND #%00000010; 			test bit 1 for end of tune
+	BNE done_irq
+
+\\get next command
+	LDY #0 
+	LDA (mem_ptr),Y;			get byte for YMADDR
+	CMP short_delay_code
+	BNE not_short_delay
+	JMP short_delay
+.not_short_delay
+	CMP long_delay_code
+	BNE not_long_delay
+	JMP long_delay
+.not_long_delay
+	TAX
+	LDA cmd_table, X
+	STA ymaddr
+	INY
+	LDA (mem_ptr),Y;			get byte for YMDATA
+	STA ymdata
+
+.increment_mem_ptr
+	INC mem_ptr;				increment mem_ptr by two bytes
+	INC mem_ptr
+	BNE decrement_length_pairs;	if this doesn't result in zero, we haven't crossed a page boundary
+	INC mem_ptr+1
+	LDA top_page
+	CMP mem_ptr+1;				if mem_ptr has reached top_page, we need to go back to the beginning of the circular buffer
+	BNE decrement_length_pairs
+	LDA #HI(buff_page)
+	STA mem_ptr+1
+
+.decrement_length_pairs
+	LDA length_pairs
+	BNE dec_length_pair_0;						skip past if b0-b7 not about to wrap
+	LDA length_pairs+1
+	BNE dec_length_pair_1;						skip past if b8-b15 not about to wrap
+	LDA length_pairs+2
+	BNE dec_length_pair_2;						skip past if b16-b24 not about to wrap
+	DEC length_pairs+3;							decrement b24-b31
+.dec_length_pair_2
+	DEC length_pairs+2;							decrement b16-23
+.dec_length_pair_1
+	DEC length_pairs+1;							decrement b8-b15
+.dec_length_pair_0
+	DEC length_pairs+0;							decrement b0-b7
+	                  ;				
+\\test zero length
+	BNE player
+	LDA length_pairs+1
+	BNE player
+	LDA length_pairs+2
+	BNE player
+	LDA length_pairs+3
+	BNE player
+
+\\all zero so need to set end of tune flag
+	LDA flags
+	ORA #%00000010;			set bit 1
+	STA flags
+	
+\\nothing left to play so exit irq_handler
+	JMP done_irq
+	
+.short_delay
+	LDA #0
+	STA delay+1
+	INY;							Y now points to the delay byte
+	CLC
+	LDA #1;							always have to add 1 to the delay
+	ADC (mem_ptr), Y
+	STA delay
+	BCC short_delay_skip
+	INC delay+1
+.short_delay_skip
+\\halve delay because of fewer interrupts
+	\ LSR delay+1
+	\ ROR delay
+	JMP increment_mem_ptr_new_delay
+	
+.long_delay
+	LDA #0
+	STA delay
+	INY;							Y now points to the delay byte
+	CLC
+	LDA #1;							always have to add 1 to the delay
+	ADC (mem_ptr), Y
+	STA delay+1
+\\halve delay because of fewer interrupts
+	\ LSR delay+1
+	\ ROR delay	
+	
+.increment_mem_ptr_new_delay
+	INC mem_ptr;								increment mem_ptr by two bytes
+	INC mem_ptr
+	BNE decrement_length_pairs_new_delay;		if this doesn't result in zero, we haven't crossed a page boundary, so we are done
+	INC mem_ptr+1
+	LDA top_page
+	CMP mem_ptr+1;								if mem_ptr has reached top_page, we need to go back to the beginning of the circular buffer
+	BNE decrement_length_pairs_new_delay
+	LDA #HI(buff_page)
+	STA mem_ptr+1
+
+.decrement_length_pairs_new_delay
+	LDA length_pairs
+	BNE dec_length_pair_new_delay_0;			skip past if b0-b7 not about to wrap
+	LDA length_pairs+1
+	BNE dec_length_pair_new_delay_1;			skip past if b8-b15 not about to wrap
+	LDA length_pairs+2
+	BNE dec_length_pair_new_delay_2;			skip past if b16-b24 not about to wrap
+	DEC length_pairs+3;							decrement b24-b31
+.dec_length_pair_new_delay_2
+	DEC length_pairs+2;							decrement b16-23
+.dec_length_pair_new_delay_1
+	DEC length_pairs+1;							decrement b8-b15
+.dec_length_pair_new_delay_0
+	DEC length_pairs+0;							decrement b0-b7
+	                  ;				
+\\test zero length
+	BNE done_new_delay
+	LDA length_pairs+1
+	BNE done_new_delay
+	LDA length_pairs+2
+	BNE done_new_delay
+	LDA length_pairs+3
+	BNE done_new_delay
+
+\\all zero so need to set end of tune flag
+	LDA flags
+	ORA #%00000010;			set bit 1
+	STA flags
+	
+\\nothing left to play so exit irq_handler
+.done_new_delay
+	JMP done_irq

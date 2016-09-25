@@ -1,0 +1,90 @@
+.error
+\\on entry X contains the LO value of the relevant error block and Y contains the HI value
+	STX error_block
+	STY error_block+1
+
+\\restore escape status
+	LDA flags
+	CMP #%00000100;				check if bit 2 set
+	BNE error_leave_esc_set
+	LDA #&0D;					disable event
+	LDX #6;						escape event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.error_leave_esc_set
+	
+\\restore EVNTV
+	LDA evntv_old
+	STA evntv
+	LDA evntv_old+1
+	STA evntv+1
+	
+\\turn off YM3812 timer
+	LDA #&04					
+	STA ymaddr
+	LDA #&60
+	STA ymdata
+
+\\close file
+	LDA #0;					CLOSE
+	LDY control_file_handle
+	JSR osfind
+
+\\restore IRQV
+	SEI
+	LDA irq1v_old
+	STA irq1v
+	LDA irq1v_old+1
+	STA irq1v+1
+
+\\YM3812 flush
+	JSR flush
+
+\\re-enable ADC sampling
+	LDA #&10
+	LDX old_ADC
+	JSR osbyte
+
+\\re-enable interrupts
+	CLI
+	
+\\generate error
+	JMP (error_block)
+	
+.error_block
+	EQUW &0000
+.escape
+	BRK;					BRK opcode
+	EQUB 17;				error number
+	EQUS "Escape"
+	EQUB 0;					message termination character
+.error_opening
+	BRK;					BRK opcode
+	EQUB 64;				error number
+	EQUS "Error opening file"
+	EQUB 0;					message termination character
+.syntax_error
+	BRK;					BRK opcode
+	EQUB 65;				error number
+	EQUS "Syntax: DROPLAY <fsp>"
+	EQUB 0;					message termination character
+.message_4
+	BRK;					BRK opcode
+	EQUB 66;				error number
+	EQUS "Message 4"
+	EQUB 0;					message termination character
+.message_5
+	BRK;					BRK opcode
+	EQUB 67;				error number
+	EQUS "Message 5"
+	EQUB 0;					message termination character
+.message_6
+	BRK;					BRK opcode
+	EQUB 68;				error number
+	EQUS "Message 6"
+	EQUB 0;					message termination character
+.not_found
+	BRK;					BRK opcode
+	EQUB 214;				error number
+	EQUS "Not found"
+	EQUB 0;					message termination character

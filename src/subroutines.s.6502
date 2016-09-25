@@ -1,0 +1,8 @@
+.event_handler
+	CMP #6; is A set with the ESCAPE event number?
+	BNE no_escape
+	LDX #LO(escape)
+	LDY #HI(escape)
+	JMP error
+.no_escape
+	JMP (evntv_old)
