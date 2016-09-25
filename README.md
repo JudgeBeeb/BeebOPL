@@ -30,6 +30,10 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [ ] Check for the presence of a BeebOPL card before attempting to play a file.
 
+- [ ] The registers are flushed too soon. Need to leave time for the last note to fade.
+
 Further down the line, I would like to see if the use of [Exomiser] (http://hem.bredband.net/magli143/exo/) could be incorporated.
 
 I would also like to see if I could include **kieranhj**'s direct track loading routines using `OSWORD` (which he uses in his amazing [Mode 7 Video] (https://github.com/kieranhj/mode7-video) project). This may resolves the problems associated with `OSGBPB`.
+
+Finally, the utility provides no form of visual output. It would be nice to add something such as some Digital VU Meter Bars, or even just a progress counter.
