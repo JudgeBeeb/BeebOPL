@@ -1,7 +1,7 @@
-ORG &1E00;								TO DO - different ORGs for different systems?
+ORG &1A00;								TO DO - different ORGs for different systems?
 
 INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
-
+ 
 \\zero page variablse
 irq1v_old=&70;			(&70 and &71)
 irq2v_old=&70;			(&70 and &71);					We don't need to intercept both IRQ vectors, it is always one or the other
@@ -29,8 +29,8 @@ evntv_old=&7E;			(&7E and &7F)
 	STA irq1v;						INTERCEPTING IRQ1V
 	LDA #HI(irq_handler)
 	STA irq1v+1
-	CLI;					re-enable interrupt
-	
+	CLI;							re-enable interrupt
+
 \\set up evntv for ESCAPE key
 	LDA evntv
 	STA evntv_old
@@ -40,7 +40,7 @@ evntv_old=&7E;			(&7E and &7F)
 	STA evntv
 	LDA #HI(event_handler)
 	STA evntv+1
-	
+
 \\enable escape events
 	LDA #&0E;			enable event
 	LDX #6;				escape event
@@ -68,13 +68,13 @@ evntv_old=&7E;			(&7E and &7F)
 \\clear all flags
 	LDA #0
 	STA flags
-	
+
 \\get filename	
 	LDA #1
 	LDX #filename_address
 	LDY #0
 	JSR osargs
-	
+
 \\TO DO - check for a 'null' filename; if so, return syntax instructions and end
 	LDX #0
 	LDA (filename_address, X)
@@ -299,7 +299,7 @@ INCLUDE "src\error.s.6502"
 	EQUW &0000
 .control_ptr
 	EQUD &00000000;		4 bytes
-
+	
 .end
 
 ALIGN &100
@@ -332,6 +332,6 @@ ALIGN &100
 ALIGN &100
 .buff_page;							This is where the circular buffer (proper) starts. head_page must not be overwritten, because it contains the command table
 
-\ PUTFILE "music\SWARS", "SWARS", 0
+PUTFILE "music\INTRO", "INTRO", 0
 
 SAVE "DROPLAY", start, end
