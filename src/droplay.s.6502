@@ -2,7 +2,7 @@ ORG &1A00;								TO DO - different ORGs for different systems?
 
 INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
-\\zero page variablse
+\\zero page variables
 irq1v_old=&70;			(&70 and &71)
 irq2v_old=&70;			(&70 and &71);					We don't need to intercept both IRQ vectors, it is always one or the other
 mem_ptr=&72;			(&72 and &73);					Location in memory currently being played
@@ -13,6 +13,7 @@ top_page=&7B;											This is the page above the top of the circular buffer (i
 flags=&7C;												Bit 0 - set if EOF reached
 													;	Bit 1 - set if end of tune reached
 													;	Bit 2 - set if escape was enabled before entry
+													;	Bit 3 - set if escape key has been pressed
 old_ADC=&7D
 evntv_old=&7E;			(&7E and &7F)
 
@@ -98,13 +99,15 @@ evntv_old=&7E;			(&7E and &7F)
 	STA control_file_handle
 
 \\test for escape before commencing long disk read
-	LDA flags
-	AND #%00000100; 			test bit 1 for escape
-	BEQ get_data
-	JMP end_game
-	
+{	LDA flags
+	AND #%00001000; 			test bit 3 for escape
+	BEQ no_escape
+	LDX #LO(escape)
+	LDY #HI(escape)
+	JSR error
+.no_escape
+}	
 \\get first few pages of data
-.get_data
 	LDA #4;					read block using PTR#
 	LDX #LO(control_block)
 	LDY #HI(control_block)
@@ -163,6 +166,15 @@ evntv_old=&7E;			(&7E and &7F)
 	STA ymdata
 
 .head_page_loop
+\\test for escape
+{	LDA flags
+	AND #%00001000; 			test bit 3 for escape
+	BEQ no_escape
+	LDX #LO(escape)
+	LDY #HI(escape)
+	JSR error
+.no_escape
+}
 \\if end of tune need to go to end
 	LDA flags
 	AND #%00000010; 			test bit 1 for end of tune
@@ -180,6 +192,15 @@ evntv_old=&7E;			(&7E and &7F)
 	STA control_load_page
 	
 .main_loop
+\\test for escape
+{	LDA flags
+	AND #%00001000; 			test bit 3 for escape
+	BEQ no_escape
+	LDX #LO(escape)
+	LDY #HI(escape)
+	JSR error
+.no_escape
+}
 \\TO DO what to do if player 'laps' the circular buffer ahead of slow disk reads
 \\if end of tune need to go to end
 	LDA flags
@@ -222,7 +243,7 @@ evntv_old=&7E;			(&7E and &7F)
 	JMP main_loop
 	
 .end_game
-\\restore escape status
+{\\restore escape status
 	LDA flags
 	CMP #%00000100;				check if bit 2 set
 	BNE leave_esc_set
@@ -269,7 +290,7 @@ evntv_old=&7E;			(&7E and &7F)
 	PLA:TAY:PLA:TAX:PLA:PLP
 	
 	RTS; goodbye
-	
+}	
 \\YM3812 flush
 .flush
 	LDX #0

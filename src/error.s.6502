@@ -86,7 +86,7 @@
 	EQUB 68;				error number
 	EQUS "Unsupported file format"
 	EQUB 0;					message termination character
-.compression
+.compressed
 	BRK;					BRK opcode
 	EQUB 69;				error number
 	EQUS "Compressed file not supported"

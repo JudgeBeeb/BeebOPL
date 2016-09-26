@@ -16,7 +16,7 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 **_Issues and to do_**
 
-- [ ] System crashes following use of the `ESCAPE` key.
+- [x] System crashes following use of the `ESCAPE` key.
 
 - [ ] The YM3812 flush routine doesn't seem to work all the time. Subsequent tunes can be a little corrupted if they are played without a preceding hard break.
 
