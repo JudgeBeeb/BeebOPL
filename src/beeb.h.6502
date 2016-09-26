@@ -63,3 +63,14 @@ irq1v=&204
 irq2v=&206
 evntv=&220
 
+\\Scratch RAM
+
+scratch_a=&A8
+scratch_b=&A9
+scratch_c=&AA
+scratch_d=&AB
+scratch_e=&AC
+scratch_f=&AD
+scratch_g=&AE
+scratch_h=&AF
+
