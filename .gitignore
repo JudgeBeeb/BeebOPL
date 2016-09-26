@@ -3,7 +3,7 @@
 
 #ignore everything in the /eagle directory
 /eagle/*
-#exepect .sch and .brd files
+#except .sch and .brd files
 !/eagle/*.sch
 !/eagle/*.brd
 
