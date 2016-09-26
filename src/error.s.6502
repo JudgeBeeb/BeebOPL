@@ -1,17 +1,20 @@
 .error
+{
+\\error should be entered with JMP (not JSR)
 \\on entry X contains the LO value of the relevant error block and Y contains the HI value
+\\can we use scrtach RAM in zero page
 	STX error_block
 	STY error_block+1
 
 \\restore escape status
 	LDA flags
 	CMP #%00000100;				check if bit 2 set
-	BNE error_leave_esc_set
+	BNE leave_esc_set
 	LDA #&0D;					disable event
 	LDX #6;						escape event code
 	LDY #0;						because AUG says this is required
 	JSR osbyte
-.error_leave_esc_set
+.leave_esc_set
 	
 \\restore EVNTV
 	LDA evntv_old
@@ -50,7 +53,7 @@
 	
 \\generate error
 	JMP (error_block)
-	
+}	
 .error_block
 	EQUW &0000
 .escape
@@ -68,21 +71,32 @@
 	EQUB 65;				error number
 	EQUS "Syntax: DROPLAY <fsp>"
 	EQUB 0;					message termination character
-.message_4
+.no_card
 	BRK;					BRK opcode
 	EQUB 66;				error number
-	EQUS "Message 4"
+	EQUS "BeebOPL card not found"
 	EQUB 0;					message termination character
-.message_5
+.not_DRO
 	BRK;					BRK opcode
 	EQUB 67;				error number
-	EQUS "Message 5"
+	EQUS "Not a valid DRO file"
 	EQUB 0;					message termination character
-.message_6
+.wrong_format
 	BRK;					BRK opcode
 	EQUB 68;				error number
-	EQUS "Message 6"
+	EQUS "Unsupported file format"
 	EQUB 0;					message termination character
+.compression
+	BRK;					BRK opcode
+	EQUB 69;				error number
+	EQUS "Compressed file not supported"
+	EQUB 0;					message termination character
+.buffer_fail
+	BRK;					BRK opcode
+	EQUB 70;				error number
+	EQUS "Buffer failure - filing system too slow"
+	EQUB 0;					message termination character
+\\NOT SURE HOW TO TRAP THIS ERROR
 .not_found
 	BRK;					BRK opcode
 	EQUB 214;				error number

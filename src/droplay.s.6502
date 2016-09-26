@@ -109,6 +109,9 @@ evntv_old=&7E;			(&7E and &7F)
 	LDX #LO(control_block)
 	LDY #HI(control_block)
 	\\the other values are already pre-programmed in the control block
+	\\actually not really, it's all just zeros
+	\\can we do this another way and fill the control block by software
+	\\or would that ironically increase the size of the executable file
 	CLC
 	JSR osgbpb
 	BCC initial_flush;		carry flag is set on exit if attempted to read beyond EOF
