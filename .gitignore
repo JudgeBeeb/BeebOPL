@@ -1,5 +1,10 @@
-old_code
-eagle/*.epf
-eagle/old_files
+#ignore the /old_code directory
+/old_code
+
+#ignore everything in the /eagle directory
+/eagle/*
+#exepect .sch and .brd files
+!/eagle/*.sch
+!/eagle/*.brd
 
 
