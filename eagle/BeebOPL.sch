@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -18360,6 +18360,8 @@ Based on the Commodore Sound Expander
 power regulator</text>
 <text x="-283.21" y="-11.43" size="1.778" layer="97">Divide track to use
 power MOSFET</text>
+<text x="168.91" y="-39.37" size="1.778" layer="97">Divide track to use
+IRQ jumper</text>
 </plain>
 <instances>
 <instance part="GND1" gate="1" x="91.44" y="-10.16"/>
@@ -19408,9 +19410,17 @@ power MOSFET</text>
 <label x="38.1" y="104.14" size="1.778" layer="95"/>
 </segment>
 <segment>
+<pinref part="S2" gate="A" pin="1"/>
+<wire x1="175.26" y1="-50.8" x2="177.8" y2="-50.8" width="0.1524" layer="91"/>
+<label x="180.34" y="-50.8" size="1.778" layer="95" xref="yes"/>
 <pinref part="S2" gate="A" pin="2"/>
-<wire x1="175.26" y1="-48.26" x2="180.34" y2="-48.26" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="-50.8" x2="180.34" y2="-50.8" width="0.1524" layer="91"/>
+<wire x1="175.26" y1="-48.26" x2="177.8" y2="-48.26" width="0.1524" layer="91"/>
 <label x="180.34" y="-48.26" size="1.778" layer="95" xref="yes"/>
+<wire x1="177.8" y1="-48.26" x2="180.34" y2="-48.26" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="-50.8" x2="177.8" y2="-48.26" width="0.1524" layer="91"/>
+<junction x="177.8" y="-50.8"/>
+<junction x="177.8" y="-48.26"/>
 </segment>
 </net>
 <net name="/NMI" class="0">
@@ -19637,11 +19647,6 @@ power MOSFET</text>
 <pinref part="IC6" gate="G$1" pin="/IRQ"/>
 <wire x1="27.94" y1="40.64" x2="25.4" y2="40.64" width="0.1524" layer="91"/>
 <label x="15.24" y="40.64" size="1.778" layer="95" xref="yes"/>
-</segment>
-<segment>
-<pinref part="S2" gate="A" pin="1"/>
-<wire x1="175.26" y1="-50.8" x2="180.34" y2="-50.8" width="0.1524" layer="91"/>
-<label x="180.34" y="-50.8" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="N$10" class="0">
