@@ -12648,17 +12648,6 @@ Based on the following sources:
 <pin name="GND" x="0" y="-10.16" visible="pad" direction="pwr" rot="R90"/>
 <pin name="VCC" x="0" y="10.16" visible="pad" direction="pwr" rot="R270"/>
 </symbol>
-<symbol name="7400">
-<wire x1="-7.62" y1="5.08" x2="-7.62" y2="-5.08" width="0.4064" layer="94"/>
-<wire x1="-7.62" y1="-5.08" x2="2.54" y2="-5.08" width="0.4064" layer="94"/>
-<wire x1="2.54" y1="5.08" x2="-7.62" y2="5.08" width="0.4064" layer="94"/>
-<wire x1="2.54" y1="5.08" x2="2.54" y2="-5.08" width="0.4064" layer="94" curve="-180"/>
-<text x="-7.62" y="5.715" size="1.778" layer="95">&gt;NAME</text>
-<text x="-7.62" y="-7.62" size="1.778" layer="96">&gt;VALUE</text>
-<pin name="I0" x="-12.7" y="2.54" visible="pad" length="middle" direction="in" swaplevel="1"/>
-<pin name="I1" x="-12.7" y="-2.54" visible="pad" length="middle" direction="in" swaplevel="1"/>
-<pin name="O" x="12.7" y="0" visible="pad" length="middle" direction="out" function="dot" rot="R180"/>
-</symbol>
 <symbol name="7404">
 <wire x1="-5.08" y1="5.08" x2="5.08" y2="0" width="0.4064" layer="94"/>
 <wire x1="5.08" y1="0" x2="-5.08" y2="-5.08" width="0.4064" layer="94"/>
@@ -12744,93 +12733,6 @@ Based on the following sources:
 <connect gate="D" pin="I0" pad="16"/>
 <connect gate="D" pin="I1" pad="18"/>
 <connect gate="D" pin="O" pad="19"/>
-<connect gate="P" pin="GND" pad="10"/>
-<connect gate="P" pin="VCC" pad="20"/>
-</connects>
-<technologies>
-<technology name=""/>
-<technology name="ALS"/>
-<technology name="AS"/>
-<technology name="LS"/>
-<technology name="S"/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="74*00" prefix="IC">
-<description>Quad 2-input &lt;b&gt;NAND&lt;/b&gt; gate</description>
-<gates>
-<gate name="A" symbol="7400" x="20.32" y="0" swaplevel="1"/>
-<gate name="B" symbol="7400" x="20.32" y="-12.7" swaplevel="1"/>
-<gate name="C" symbol="7400" x="48.26" y="0" swaplevel="1"/>
-<gate name="D" symbol="7400" x="48.26" y="-12.7" swaplevel="1"/>
-<gate name="P" symbol="PWRN" x="2.54" y="-5.08" addlevel="request"/>
-</gates>
-<devices>
-<device name="N" package="DIL14">
-<connects>
-<connect gate="A" pin="I0" pad="1"/>
-<connect gate="A" pin="I1" pad="2"/>
-<connect gate="A" pin="O" pad="3"/>
-<connect gate="B" pin="I0" pad="4"/>
-<connect gate="B" pin="I1" pad="5"/>
-<connect gate="B" pin="O" pad="6"/>
-<connect gate="C" pin="I0" pad="9"/>
-<connect gate="C" pin="I1" pad="10"/>
-<connect gate="C" pin="O" pad="8"/>
-<connect gate="D" pin="I0" pad="12"/>
-<connect gate="D" pin="I1" pad="13"/>
-<connect gate="D" pin="O" pad="11"/>
-<connect gate="P" pin="GND" pad="7"/>
-<connect gate="P" pin="VCC" pad="14"/>
-</connects>
-<technologies>
-<technology name=""/>
-<technology name="ALS"/>
-<technology name="AS"/>
-<technology name="LS"/>
-<technology name="S"/>
-</technologies>
-</device>
-<device name="D" package="SO14">
-<connects>
-<connect gate="A" pin="I0" pad="1"/>
-<connect gate="A" pin="I1" pad="2"/>
-<connect gate="A" pin="O" pad="3"/>
-<connect gate="B" pin="I0" pad="4"/>
-<connect gate="B" pin="I1" pad="5"/>
-<connect gate="B" pin="O" pad="6"/>
-<connect gate="C" pin="I0" pad="9"/>
-<connect gate="C" pin="I1" pad="10"/>
-<connect gate="C" pin="O" pad="8"/>
-<connect gate="D" pin="I0" pad="12"/>
-<connect gate="D" pin="I1" pad="13"/>
-<connect gate="D" pin="O" pad="11"/>
-<connect gate="P" pin="GND" pad="7"/>
-<connect gate="P" pin="VCC" pad="14"/>
-</connects>
-<technologies>
-<technology name=""/>
-<technology name="ALS"/>
-<technology name="AS"/>
-<technology name="LS"/>
-<technology name="S"/>
-</technologies>
-</device>
-<device name="FK" package="LCC20">
-<connects>
-<connect gate="A" pin="I0" pad="2"/>
-<connect gate="A" pin="I1" pad="3"/>
-<connect gate="A" pin="O" pad="4"/>
-<connect gate="B" pin="I0" pad="6"/>
-<connect gate="B" pin="I1" pad="8"/>
-<connect gate="B" pin="O" pad="9"/>
-<connect gate="C" pin="I0" pad="13"/>
-<connect gate="C" pin="I1" pad="14"/>
-<connect gate="C" pin="O" pad="12"/>
-<connect gate="D" pin="I0" pad="18"/>
-<connect gate="D" pin="I1" pad="19"/>
-<connect gate="D" pin="O" pad="16"/>
 <connect gate="P" pin="GND" pad="10"/>
 <connect gate="P" pin="VCC" pad="20"/>
 </connects>
@@ -16114,9 +16016,6 @@ Based on the following sources:
 <part name="S2" library="SparkFun-Retired" deviceset="JUMPER-2" device="PTH" value="IRQ"/>
 <part name="C7" library="resistor" deviceset="C-EU" device="050-024X044" value="10nF"/>
 <part name="C6" library="resistor" deviceset="CPOL-EU" device="E2-5" value="10uF 16V"/>
-<part name="IC3" library="74xx-us" deviceset="74*00" device="N" technology="LS"/>
-<part name="P+2" library="supply1" deviceset="VCC" device=""/>
-<part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="IC7" library="74xx-us" deviceset="74*04" device="N" technology="LS"/>
 <part name="P+5" library="supply1" deviceset="VCC" device=""/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
@@ -16148,7 +16047,7 @@ positive)</text>
 <text x="-99.06" y="25.4" size="1.778" layer="97">Address bus</text>
 <text x="-101.6" y="119.38" size="1.778" layer="97">Gated clean not
 page select signal</text>
-<text x="-48.26" y="22.86" size="1.778" layer="97">Gated not read and
+<text x="-71.12" y="25.4" size="1.778" layer="97">Gated not read and
 not write signals</text>
 <text x="-71.12" y="-20.32" size="1.778" layer="97">Clock generator</text>
 <text x="45.72" y="7.62" size="1.778" layer="97">FM synthesiser</text>
@@ -16246,28 +16145,26 @@ Based on the Commodore Sound Expander
 <attribute name="NAME" x="-143.637" y="58.9026" size="1.778" layer="95"/>
 <attribute name="VALUE" x="-143.637" y="53.8226" size="1.778" layer="96"/>
 </instance>
-<instance part="IC3" gate="P" x="-162.56" y="7.62"/>
-<instance part="P+2" gate="VCC" x="-162.56" y="20.32"/>
-<instance part="GND3" gate="1" x="-162.56" y="-5.08"/>
-<instance part="IC3" gate="C" x="10.16" y="17.78"/>
 <instance part="IC7" gate="A" x="-83.82" y="-10.16"/>
-<instance part="IC7" gate="P" x="-152.4" y="7.62"/>
-<instance part="P+5" gate="VCC" x="-152.4" y="20.32"/>
-<instance part="GND11" gate="1" x="-152.4" y="-5.08"/>
+<instance part="IC7" gate="P" x="-162.56" y="7.62"/>
+<instance part="P+5" gate="VCC" x="-162.56" y="20.32"/>
+<instance part="GND11" gate="1" x="-162.56" y="-5.08"/>
 <instance part="IC7" gate="F" x="-45.72" y="-10.16"/>
-<instance part="IC7" gate="D" x="2.54" y="-10.16"/>
 <instance part="IC7" gate="E" x="-20.32" y="-10.16"/>
-<instance part="IC7" gate="C" x="-20.32" y="15.24"/>
 <instance part="IC9" gate="A" x="-91.44" y="76.2"/>
 <instance part="P+9" gate="VCC" x="-116.84" y="73.66"/>
 <instance part="GND15" gate="1" x="-109.22" y="50.8"/>
-<instance part="IC9" gate="P" x="-142.24" y="7.62"/>
-<instance part="P+10" gate="VCC" x="-142.24" y="17.78"/>
-<instance part="GND16" gate="1" x="-142.24" y="-2.54"/>
+<instance part="IC9" gate="P" x="-152.4" y="7.62"/>
+<instance part="P+10" gate="VCC" x="-152.4" y="17.78"/>
+<instance part="GND16" gate="1" x="-152.4" y="-2.54"/>
 <instance part="H1" gate="G$1" x="134.62" y="127"/>
 <instance part="H2" gate="G$1" x="134.62" y="116.84"/>
 <instance part="H3" gate="G$1" x="134.62" y="106.68"/>
 <instance part="H4" gate="G$1" x="134.62" y="96.52"/>
+<instance part="IC5" gate="D" x="-15.24" y="17.78"/>
+<instance part="IC7" gate="B" x="12.7" y="17.78"/>
+<instance part="IC7" gate="C" x="-45.72" y="20.32"/>
+<instance part="IC7" gate="D" x="-2.54" y="7.62"/>
 </instances>
 <busses>
 <bus name="D[0..7]">
@@ -16473,10 +16370,6 @@ Based on the Commodore Sound Expander
 <pinref part="IC2" gate="G$1" pin="GND"/>
 <pinref part="GND4" gate="1" pin="GND"/>
 <wire x1="76.2" y1="-71.12" x2="76.2" y2="-73.66" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="IC3" gate="P" pin="GND"/>
-<pinref part="GND3" gate="1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="IC7" gate="P" pin="GND"/>
@@ -16723,10 +16616,6 @@ Based on the Commodore Sound Expander
 <wire x1="86.36" y1="-76.2" x2="101.6" y2="-76.2" width="0.1524" layer="91"/>
 <pinref part="P+3" gate="VCC" pin="VCC"/>
 <wire x1="101.6" y1="-76.2" x2="101.6" y2="-73.66" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="IC3" gate="P" pin="VCC"/>
-<pinref part="P+2" gate="VCC" pin="VCC"/>
 </segment>
 <segment>
 <pinref part="IC7" gate="P" pin="VCC"/>
@@ -17073,11 +16962,9 @@ Based on the Commodore Sound Expander
 <label x="5.08" y="99.06" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="-2.54" y1="20.32" x2="-7.62" y2="20.32" width="0.1524" layer="91"/>
-<wire x1="-7.62" y1="20.32" x2="-7.62" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="-7.62" y1="27.94" x2="-12.7" y2="27.94" width="0.1524" layer="91"/>
-<label x="-22.86" y="27.94" size="1.778" layer="95" xref="yes"/>
-<pinref part="IC3" gate="C" pin="I0"/>
+<pinref part="IC7" gate="C" pin="I"/>
+<wire x1="-55.88" y1="20.32" x2="-63.5" y2="20.32" width="0.1524" layer="91"/>
+<label x="-71.12" y="20.32" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="R/W" class="0">
@@ -17092,9 +16979,14 @@ Based on the Commodore Sound Expander
 <label x="7.62" y="96.52" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="-30.48" y1="15.24" x2="-33.02" y2="15.24" width="0.1524" layer="91"/>
-<label x="-40.64" y="15.24" size="1.778" layer="95" xref="yes"/>
-<pinref part="IC7" gate="C" pin="I"/>
+<pinref part="IC5" gate="D" pin="I1"/>
+<wire x1="-27.94" y1="15.24" x2="-53.34" y2="15.24" width="0.1524" layer="91"/>
+<label x="-68.58" y="15.24" size="1.778" layer="95" xref="yes"/>
+<wire x1="-53.34" y1="15.24" x2="-63.5" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="-53.34" y1="15.24" x2="-53.34" y2="7.62" width="0.1524" layer="91"/>
+<junction x="-53.34" y="15.24"/>
+<wire x1="-53.34" y1="7.62" x2="-12.7" y2="7.62" width="0.1524" layer="91"/>
+<pinref part="IC7" gate="D" pin="I"/>
 </segment>
 </net>
 <net name="CNPGFC" class="0">
@@ -17304,18 +17196,6 @@ Based on the Commodore Sound Expander
 <pinref part="IC2" gate="G$1" pin="CLOCK"/>
 </segment>
 </net>
-<net name="/RD" class="0">
-<segment>
-<wire x1="-10.16" y1="15.24" x2="-5.08" y2="15.24" width="0.1524" layer="91"/>
-<wire x1="-5.08" y1="15.24" x2="-2.54" y2="15.24" width="0.1524" layer="91"/>
-<wire x1="-5.08" y1="15.24" x2="-5.08" y2="10.16" width="0.1524" layer="91"/>
-<junction x="-5.08" y="15.24"/>
-<pinref part="IC6" gate="G$1" pin="/RD"/>
-<wire x1="27.94" y1="10.16" x2="-5.08" y2="10.16" width="0.1524" layer="91"/>
-<pinref part="IC3" gate="C" pin="I1"/>
-<pinref part="IC7" gate="C" pin="O"/>
-</segment>
-</net>
 <net name="N$30" class="0">
 <segment>
 <pinref part="IC6" gate="G$1" pin="/CS"/>
@@ -17327,23 +17207,39 @@ Based on the Commodore Sound Expander
 </net>
 <net name="N$24" class="0">
 <segment>
-<pinref part="IC3" gate="C" pin="O"/>
 <pinref part="IC6" gate="G$1" pin="/WR"/>
 <wire x1="22.86" y1="17.78" x2="27.94" y2="17.78" width="0.1524" layer="91"/>
+<pinref part="IC7" gate="B" pin="O"/>
 </segment>
 </net>
 <net name="N$26" class="0">
 <segment>
-<pinref part="IC7" gate="D" pin="I"/>
-<wire x1="-7.62" y1="-10.16" x2="-10.16" y2="-10.16" width="0.1524" layer="91"/>
 <pinref part="IC7" gate="E" pin="O"/>
+<pinref part="IC6" gate="G$1" pin="0M"/>
+<wire x1="-10.16" y1="-10.16" x2="27.94" y2="-10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$25" class="0">
+<net name="N$2" class="0">
+<segment>
+<pinref part="IC5" gate="D" pin="O"/>
+<pinref part="IC7" gate="B" pin="I"/>
+<wire x1="-2.54" y1="17.78" x2="2.54" y2="17.78" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$3" class="0">
+<segment>
+<pinref part="IC7" gate="C" pin="O"/>
+<pinref part="IC5" gate="D" pin="I0"/>
+<wire x1="-35.56" y1="20.32" x2="-27.94" y2="20.32" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$14" class="0">
 <segment>
 <pinref part="IC7" gate="D" pin="O"/>
-<pinref part="IC6" gate="G$1" pin="0M"/>
-<wire x1="12.7" y1="-10.16" x2="27.94" y2="-10.16" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="7.62" x2="20.32" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="20.32" y1="7.62" x2="22.86" y2="10.16" width="0.1524" layer="91"/>
+<pinref part="IC6" gate="G$1" pin="/RD"/>
+<wire x1="22.86" y1="10.16" x2="27.94" y2="10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
