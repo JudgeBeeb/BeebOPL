@@ -26,7 +26,7 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [ ] Address continuing minor timing issues. DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond. 
 
-- [ ] Include error messages for ~~card not found~~, buffer fail, unrecognised file type, unsupported file format and unsuported compression.
+- [ ] Include error messages for ~~card not found~~, buffer fail, unrecognised file type, unsupported file format, not OPL2 compatible and unsuported compression.
 
 - [x] ~~Check for the presence of a BeebOPL card before attempting to play a file.~~
 
