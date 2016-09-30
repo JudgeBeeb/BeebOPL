@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -18313,8 +18313,8 @@ Source: www.kingbright.com</description>
 <part name="JP4" library="pinhead" deviceset="PINHD-1X2" device="" value="LED"/>
 <part name="P+9" library="supply1" deviceset="VCC" device=""/>
 <part name="JP5" library="pinhead" deviceset="PINHD-1X4" device="" value="PWR"/>
-<part name="C10" library="resistor" deviceset="C-EU" device="050-024X044" value="10nF"/>
-<part name="C11" library="resistor" deviceset="C-EU" device="050-024X044" value="10nF"/>
+<part name="C10" library="resistor" deviceset="C-EU" device="050-024X044" value="100nF"/>
+<part name="C11" library="resistor" deviceset="C-EU" device="050-024X044" value="100nF"/>
 <part name="S2" library="SparkFun-Retired" deviceset="SOLDERJUMPER" device="TRACE-PTH" value="IRQ"/>
 <part name="S3" library="YMSynth" deviceset="J2" device="" value="REG"/>
 <part name="TR1" library="YMSynth" deviceset="IRFD9024-OPTN" device="" value="IRFD9024"/>
@@ -18382,6 +18382,7 @@ IRQ jumper</text>
 <frame x1="-189.23" y1="-186.69" x2="198.12" y2="100.33" columns="8" rows="5" layer="91"/>
 <text x="12.7" y="-154.94" size="2.54" layer="97">Check the pinout orientation for power connector</text>
 <text x="12.7" y="-160.02" size="2.54" layer="97">Check that sockets etc fit with overhang</text>
+<text x="12.7" y="-165.1" size="2.54" layer="97">Put arrows at track cut points</text>
 </plain>
 <instances>
 <instance part="GND1" gate="1" x="91.44" y="-10.16"/>
@@ -18763,6 +18764,9 @@ IRQ jumper</text>
 <pinref part="J4" gate="G$1" pin="GND"/>
 <wire x1="-106.68" y1="-73.66" x2="-106.68" y2="-76.2" width="0.1524" layer="91"/>
 <pinref part="GND13" gate="1" pin="GND"/>
+<pinref part="J4" gate="G$1" pin="GNDBREAK"/>
+<wire x1="-106.68" y1="-73.66" x2="-106.68" y2="-71.12" width="0.1524" layer="91"/>
+<junction x="-106.68" y="-73.66"/>
 </segment>
 <segment>
 <pinref part="JP3" gate="G$1" pin="2"/>
@@ -19804,6 +19808,8 @@ IRQ jumper</text>
 <errors>
 <approved hash="104,1,78.74,2.54,IC6,VSS,VCC,,,"/>
 <approved hash="104,1,86.36,-71.12,IC2,VDD,VCC,,,"/>
+<approved hash="104,1,0,-80.01,IC1P,V+,VCC,,,"/>
+<approved hash="104,1,0,-95.25,IC1P,V-,GND,,,"/>
 </errors>
 </schematic>
 </drawing>
