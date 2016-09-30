@@ -19016,6 +19016,12 @@ IRQ jumper</text>
 <segment>
 <pinref part="GND19" gate="1" pin="GND"/>
 <wire x1="-123.19" y1="-93.98" x2="-123.19" y2="-96.52" width="0.1524" layer="91"/>
+<pinref part="JP5" gate="A" pin="3"/>
+<wire x1="-123.19" y1="-93.98" x2="-115.57" y2="-93.98" width="0.1524" layer="91"/>
+<pinref part="JP5" gate="A" pin="2"/>
+<wire x1="-115.57" y1="-91.44" x2="-123.19" y2="-91.44" width="0.1524" layer="91"/>
+<wire x1="-123.19" y1="-93.98" x2="-123.19" y2="-91.44" width="0.1524" layer="91"/>
+<junction x="-123.19" y="-93.98"/>
 </segment>
 <segment>
 <pinref part="GND18" gate="1" pin="GND"/>
@@ -19789,7 +19795,7 @@ IRQ jumper</text>
 <wire x1="154.94" y1="-73.66" x2="162.56" y2="-73.66" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$17" class="2">
+<net name="AUDIO_OUT" class="2">
 <segment>
 <pinref part="C1" gate="G$1" pin="-"/>
 <pinref part="J3" gate="G$1" pin="LEFT"/>
@@ -19989,7 +19995,7 @@ IRQ jumper</text>
 <label x="-95.25" y="-17.78" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="+12V" class="0">
+<net name="+12V" class="1">
 <segment>
 <pinref part="JP5" gate="A" pin="1"/>
 <wire x1="-115.57" y1="-88.9" x2="-106.68" y2="-88.9" width="0.1524" layer="91"/>
@@ -20027,21 +20033,12 @@ IRQ jumper</text>
 <pinref part="P+13" gate="1" pin="+5V"/>
 </segment>
 </net>
-<net name="N$4" class="0">
+<net name="DC" class="1">
 <segment>
 <pinref part="J4" gate="G$1" pin="PWR"/>
 <wire x1="-106.68" y1="-68.58" x2="-99.06" y2="-68.58" width="0.1524" layer="91"/>
 <pinref part="S3" gate="G$1" pin="2"/>
 <wire x1="-99.06" y1="-68.58" x2="-99.06" y2="-62.23" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$29" class="0">
-<segment>
-<pinref part="JP5" gate="A" pin="2"/>
-<wire x1="-115.57" y1="-91.44" x2="-123.19" y2="-91.44" width="0.1524" layer="91"/>
-<pinref part="JP5" gate="A" pin="3"/>
-<wire x1="-115.57" y1="-93.98" x2="-123.19" y2="-93.98" width="0.1524" layer="91"/>
-<wire x1="-123.19" y1="-91.44" x2="-123.19" y2="-93.98" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
