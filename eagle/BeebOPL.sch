@@ -19646,7 +19646,7 @@ IRQ jumper</text>
 <wire x1="-73.66" y1="76.2" x2="-71.12" y2="76.2" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$6" class="2">
+<net name="N$6" class="0">
 <segment>
 <pinref part="IC6" gate="G$1" pin="SH"/>
 <wire x1="43.18" y1="-17.78" x2="43.18" y2="-55.88" width="0.1524" layer="91"/>
@@ -19654,7 +19654,7 @@ IRQ jumper</text>
 <wire x1="43.18" y1="-55.88" x2="63.5" y2="-55.88" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$7" class="2">
+<net name="N$7" class="0">
 <segment>
 <pinref part="IC6" gate="G$1" pin="MO"/>
 <wire x1="53.34" y1="-17.78" x2="53.34" y2="-48.26" width="0.1524" layer="91"/>
@@ -19662,7 +19662,7 @@ IRQ jumper</text>
 <wire x1="53.34" y1="-48.26" x2="63.5" y2="-48.26" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$8" class="2">
+<net name="N$8" class="0">
 <segment>
 <pinref part="IC6" gate="G$1" pin="0SY"/>
 <wire x1="63.5" y1="-17.78" x2="63.5" y2="-40.64" width="0.1524" layer="91"/>
