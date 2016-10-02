@@ -30,11 +30,13 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [ ] Address continuing minor timing issues. DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond. 
 
-- [ ] check to see if player has overtaken buffer and issue warning
+- [ ] check to see if player has overtaken buffer and issue error
 
 - [ ] The registers are flushed too soon. Need to leave time for the last note to fade.
 
 - [ ] Generally tidy up code; in particular using curly braces and local variables.
+
+- [ ] Jukebox inexplicably occasionally reports "BeebOPL card not found"
 
 Further down the line, I would like to see if the use of [Exomiser] (http://hem.bredband.net/magli143/exo/) could be incorporated.
 

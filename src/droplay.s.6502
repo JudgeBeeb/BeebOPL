@@ -1,4 +1,4 @@
-beebem=TRUE;							Set to true if running in BeebEm for debugging
+beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
 ORG &1A00;								TO DO - different ORGs for different systems?
 
@@ -57,7 +57,7 @@ evntv_old=&7E;			(&7E and &7F)
 
 IF beebem
 	\\skip card check because there can't be a card connected to BeebEm
-ELIF
+ELSE
 \\detect presence of BeebOPL card
 \\there haa got to be much more efficient code than this
 {
@@ -443,7 +443,7 @@ ALIGN &100
 ALIGN &100
 .buff_page;							This is where the circular buffer (proper) starts. head_page must not be overwritten, because it contains the command table
 
-PUTFILE "music\INTRO", "INTRO", 0
+PUTFILE "music\SWARS", "SWARS", 0
 PUTFILE "music\fakes\SIG.BIN", "SIG", 0
 PUTFILE "music\fakes\VER.BIN", "VER", 0
 PUTFILE "music\fakes\HARD.BIN", "HARD", 0

@@ -1,0 +1,11 @@
+10 CLS
+20 handle%=OPENOUT("JUKEDAT")
+30 INPUT "How many tracks do you have";tracks%
+40 PRINT#handle%,tracks%
+50 FOR n=1 TO tracks%
+60 INPUT "Enter the filename";filename$
+70 INPUT "Enter the track title";title$
+80 PRINT#handle%, filename$, title$
+90 NEXT n
+100 CLOSE#handle%
+
