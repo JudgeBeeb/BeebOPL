@@ -18,6 +18,10 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [x] ~~System crashes following use of the `ESCAPE` key.~~
 
+- [x] ~~Check for the presence of a BeebOPL card before attempting to play a file and issue error.~~
+
+- [x] ~~Include error messages for card not found, not a valid DRO file, unsupported DRO version, wrong card version and compressed file not supported.~~ 
+
 - [ ] The YM3812 flush routine doesn't seem to work all the time. Subsequent tunes can be a little corrupted if they are played without a preceding hard break.
 
 - [ ] Due to an inherent problem with OSGBPB, the filing system cannot keep up with the demands of particularly large/complex DRO files. The player effectively '_laps_' the circular buffer and starts repeating the same segment of the file.
@@ -26,9 +30,7 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [ ] Address continuing minor timing issues. DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond. 
 
-- [ ] Include error messages for card not found, buffer fail, unrecognised file type, unsupported file format, not OPL2 compatible and unsuported compression.
-
-- [x] ~~Check for the presence of a BeebOPL card before attempting to play a file.~~
+- [ ] check to see if player has overtaken buffer and issue warning
 
 - [ ] The registers are flushed too soon. Need to leave time for the last note to fade.
 

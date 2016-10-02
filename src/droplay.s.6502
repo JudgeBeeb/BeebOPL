@@ -1,3 +1,5 @@
+beebem=TRUE;							Set to true if running in BeebEm for debugging
+									;	Otherwise, set to false if running on native hardware
 ORG &1A00;								TO DO - different ORGs for different systems?
 
 INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
@@ -53,8 +55,11 @@ evntv_old=&7E;			(&7E and &7F)
 	STA flags
 .escape_not_set
 
+IF beebem
+	\\skip card check because there can't be a card connected to BeebEm
+ELIF
 \\detect presence of BeebOPL card
-\\there hsa got to be much more efficient code than this
+\\there haa got to be much more efficient code than this
 {
 	SEI;										this procedure will generate unwanted interrupts
 	LDA #&04: STA ymaddr: LDA #&60: STA ymdata;	Reset timers 1 and 2
@@ -83,6 +88,7 @@ evntv_old=&7E;			(&7E and &7F)
 	JMP error
 .card_present
 }	
+ENDIF
 
 \\get value for top_page
 	LDA #&84
@@ -123,7 +129,7 @@ evntv_old=&7E;			(&7E and &7F)
 \\report error
 	LDX #LO(error_opening)
 	LDY #HI(error_opening)
-	JSR error
+	JMP error
 .file_opened
 	STA control_file_handle
 
@@ -133,7 +139,7 @@ evntv_old=&7E;			(&7E and &7F)
 	BEQ no_escape
 	LDX #LO(escape)
 	LDY #HI(escape)
-	JSR error
+	JMP error
 .no_escape
 }	
 \\get first few pages of data
@@ -152,7 +158,56 @@ evntv_old=&7E;			(&7E and &7F)
 	ORA #%00000001;			set bit 0
 	STA flags
 	
-\\TO DO HANDLE ERRORS WITH FILE FORMAT	
+\\check if DRO file
+{
+	LDX #0
+.loop
+	LDA signature, X
+	CMP check_signature, X
+	BNE DRO_check_fail
+	INX
+	CPX #8
+	BNE loop
+	JMP DRO_check_pass
+.DRO_check_fail
+	LDX #LO(not_DRO)
+	LDY #HI(not_DRO)
+	JMP error
+.DRO_check_pass
+}
+
+\\check version number
+	LDA version_major
+	CMP #2
+	BNE version_check_fail
+	LDA version_major+1
+	BNE version_check_fail
+	LDA version_minor
+	BNE version_check_fail
+	LDA version_minor+1
+	BNE version_check_fail
+	JMP version_check_pass
+.version_check_fail
+	LDX #LO(wrong_version)
+	LDY #HI(wrong_version)
+	JMP error
+.version_check_pass
+
+\\check for hardware type
+	LDA hardware_type
+	BEQ OPL2
+	LDX #LO(wrong_hardware)
+	LDY #HI(wrong_hardware)
+	JMP error
+.OPL2
+
+\\check for compression
+	LDA compression
+	BEQ not_compressed
+	LDX #LO(compressed)
+	LDY #HI(compressed)
+	JMP error
+.not_compressed
 
 \\YM3812 flush
 .initial_flush
@@ -201,7 +256,7 @@ evntv_old=&7E;			(&7E and &7F)
 	BEQ no_escape
 	LDX #LO(escape)
 	LDY #HI(escape)
-	JSR error
+	JMP error
 .no_escape
 }
 \\if end of tune need to go to end
@@ -227,7 +282,7 @@ evntv_old=&7E;			(&7E and &7F)
 	BEQ no_escape
 	LDX #LO(escape)
 	LDY #HI(escape)
-	JSR error
+	JMP error
 .no_escape
 }
 \\TO DO what to do if player 'laps' the circular buffer ahead of slow disk reads
@@ -352,6 +407,9 @@ INCLUDE "src\error.s.6502"
 	EQUW &0000
 .control_ptr
 	EQUD &00000000;		4 bytes
+
+.check_signature
+	EQUS "DBRAWOPL"
 	
 .end
 
@@ -386,5 +444,9 @@ ALIGN &100
 .buff_page;							This is where the circular buffer (proper) starts. head_page must not be overwritten, because it contains the command table
 
 PUTFILE "music\INTRO", "INTRO", 0
+PUTFILE "music\fakes\SIG.BIN", "SIG", 0
+PUTFILE "music\fakes\VER.BIN", "VER", 0
+PUTFILE "music\fakes\HARD.BIN", "HARD", 0
+PUTFILE "music\fakes\COMP.BIN", "COMP", 0
 
 SAVE "DROPLAY", start, end

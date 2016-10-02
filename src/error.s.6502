@@ -81,19 +81,24 @@
 	EQUB 67;				error number
 	EQUS "Not a valid DRO file"
 	EQUB 0;					message termination character
-.wrong_format
+.wrong_version
 	BRK;					BRK opcode
 	EQUB 68;				error number
-	EQUS "Unsupported file format"
+	EQUS "Unsupported DRO version"
+	EQUB 0;					message termination character
+.wrong_hardware
+	BRK;					BRK opcode
+	EQUB 69;				error number
+	EQUS "Wrong card version"
 	EQUB 0;					message termination character
 .compressed
 	BRK;					BRK opcode
-	EQUB 69;				error number
+	EQUB 70;				error number
 	EQUS "Compressed file not supported"
 	EQUB 0;					message termination character
 .buffer_fail
 	BRK;					BRK opcode
-	EQUB 70;				error number
+	EQUB 71;				error number
 	EQUS "Buffer failure - filing system too slow"
 	EQUB 0;					message termination character
 \\NOT SURE HOW TO TRAP THIS ERROR
