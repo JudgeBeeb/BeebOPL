@@ -5998,7 +5998,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <pad name="0SY" x="-11.43" y="7.62" drill="0.8128" shape="long" rot="R90"/>
 <pad name="0M" x="-13.97" y="7.62" drill="0.8128" shape="long" rot="R90"/>
 <text x="-15.621" y="-6.35" size="1.778" layer="25" ratio="10" rot="R90">&gt;NAME</text>
-<text x="-12.065" y="-0.889" size="1.778" layer="27" ratio="10">YM3812</text>
+<text x="-5.715" y="-0.889" size="1.778" layer="27" ratio="10">&gt;VALUE</text>
 </package>
 <package name="YM3014B">
 <description>&lt;b&gt;YM3014B&lt;/b&gt;</description>
@@ -6017,7 +6017,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <pad name="GND" x="1.27" y="3.81" drill="0.8128" shape="long" rot="R90"/>
 <pad name="CLOCK" x="3.81" y="3.81" drill="0.8128" shape="long" rot="R90"/>
 <text x="-5.334" y="-2.921" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
-<text x="-3.556" y="-0.635" size="1.27" layer="27" ratio="10">YM3014B</text>
+<text x="-3.556" y="-0.635" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
 </package>
 <package name="04C">
 <description>&lt;b&gt;JUMPER&lt;/b&gt;</description>
@@ -10905,7 +10905,7 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <symbols>
 <symbol name="YM3812">
 <text x="-19.685" y="17.145" size="1.778" layer="95">&gt;NAME</text>
-<text x="-5.715" y="-8.89" size="1.778" layer="96">YM3812</text>
+<text x="-5.715" y="-8.89" size="1.778" layer="96">&gt;VALUE</text>
 <pin name="/CS" x="-25.4" y="12.7" visible="pin" length="middle" function="dot"/>
 <pin name="/IRQ" x="-25.4" y="5.08" visible="pin" length="middle" function="dot"/>
 <pin name="/IC" x="-25.4" y="-2.54" visible="pin" length="middle" function="dot"/>
@@ -10935,7 +10935,7 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 </symbol>
 <symbol name="YM3014B">
 <text x="-4.445" y="4.445" size="1.778" layer="95">&gt;NAME</text>
-<text x="-5.715" y="-11.43" size="1.778" layer="96">YM3014B</text>
+<text x="-5.715" y="-11.43" size="1.778" layer="96">&gt;VALUE</text>
 <wire x1="12.7" y1="2.54" x2="12.7" y2="-27.94" width="0.254" layer="94"/>
 <wire x1="12.7" y1="2.54" x2="2.54" y2="2.54" width="0.254" layer="94"/>
 <wire x1="-2.54" y1="2.54" x2="-12.7" y2="2.54" width="0.254" layer="94"/>
@@ -14625,7 +14625,9 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <connect gate="G$1" pin="VSS" pad="VSS"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="VALUE" value="YM3812" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -14648,7 +14650,9 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <connect gate="G$1" pin="VDD" pad="VDD"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="VALUE" value="Y3014B" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -22292,7 +22296,7 @@ Source: www.kingbright.com</description>
 <part name="C1" library="resistor" deviceset="C-EU" device="050-024X044" value="82pF"/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="Q1" library="special" deviceset="XTAL/S" device="" value="3.579MHz"/>
-<part name="IC7" library="YMSynth" deviceset="YM3014B" device="-DIP8" value="YM3014B"/>
+<part name="IC7" library="YMSynth" deviceset="YM3014B" device="-DIP8" value="Y3014B"/>
 <part name="GND14" library="supply1" deviceset="GND" device=""/>
 <part name="P+16" library="supply1" deviceset="VCC" device=""/>
 <part name="J1" library="con-harting-ml" deviceset="ML34" device="" value="1 MHz Bus"/>
@@ -22405,7 +22409,7 @@ filter</text>
 <wire x1="-182.88" y1="-157.48" x2="2.54" y2="-157.48" width="0.1524" layer="97"/>
 <text x="-175.26" y="-152.4" size="10.16" layer="97" font="vector">REVISION: 1.00</text>
 <wire x1="-182.88" y1="-180.34" x2="2.54" y2="-180.34" width="0.1524" layer="97"/>
-<text x="-175.26" y="-175.26" size="10.16" layer="97" font="vector">DATE: 1 October 2016</text>
+<text x="-175.26" y="-175.26" size="10.16" layer="97" font="vector">DATE: 2 October 2016</text>
 <text x="-96.52" y="-50.8" size="1.778" layer="97" rot="R90">Divide track to use
 12v from power jack</text>
 <text x="-57.15" y="-81.28" size="1.778" layer="97" rot="R270">Divide track to use
