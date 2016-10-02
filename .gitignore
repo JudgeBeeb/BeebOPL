@@ -7,6 +7,7 @@
 !/eagle/*.sch
 !/eagle/*.brd
 
-#ignore the /docs directory until there is something vaguely presentable in there
+#ignore the /docs directory
 /docs
+#schematic.pdf
 !/docs/schematic.pdf
