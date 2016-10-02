@@ -28,7 +28,7 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [ ] Include error messages for card not found, buffer fail, unrecognised file type, unsupported file format, not OPL2 compatible and unsuported compression.
 
-- [ ] Check for the presence of a BeebOPL card before attempting to play a file.
+- [x] ~~Check for the presence of a BeebOPL card before attempting to play a file.~~
 
 - [ ] The registers are flushed too soon. Need to leave time for the last note to fade.
 

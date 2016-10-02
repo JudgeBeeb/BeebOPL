@@ -7,7 +7,10 @@
 !/eagle/*.sch
 !/eagle/*.brd
 
-#ignore the /docs directory
-/docs
+#ignore everything in the /docs directory
+/docs/*
 #schematic.pdf
 !/docs/schematic.pdf
+
+#ignore the macros file unless it contains something useful
+src/droplay_macros.h.6502

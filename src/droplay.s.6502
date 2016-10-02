@@ -59,30 +59,29 @@ evntv_old=&7E;			(&7E and &7F)
 	SEI;										this procedure will generate unwanted interrupts
 	LDA #&04: STA ymaddr: LDA #&60: STA ymdata;	Reset timers 1 and 2
 	LDA #&04: STA ymaddr: LDA #&80: STA ymdata;	Reset the IRQ
-	LDA ymaddr: AND &E0: STA scratch_a;			Read status register. Save the result. 
+	LDA ymaddr: AND #&E0: STA scratch_a;		Read status register. Save the result. 
 											;	You should AND the result bytes with &E0h because
 											;	the unused bits are undefined.
 	LDA #&02: STA ymaddr: LDA #&FF: STA ymdata;	Set timer 1 to &FF.
 	LDA #&04: STA ymaddr: LDA #&21: STA ymdata;	Unmask and start timer 1.
-	LDX #40
+	LDX #32
 .delay_loop
 	DEX
 	BNE delay_loop;								Wait in a delay loop for at least 80 μsec.
-	LDA ymaddr: AND &E0: STA scratch_b;			Read status register. Save the result. 
+	LDA ymaddr: AND #&E0: STA scratch_b;		Read status register. Save the result. 
 											;	You should AND the result bytes with &E0 because
 											;	the unused bits are undefined.
 	LDA #&04: STA ymaddr: LDA #&60: STA ymdata
 	LDA #&04: STA ymaddr: LDA #&80: STA ymdata;	Reset timers 1 and 2 and IRQ as above.
+	CLI;										re-enable interrupts
 											;	Test the results of the two reads
 	LDA scratch_a: BNE card_absent			;	the first should be 0, 
 	LDA scratch_b: CMP #&C0: BEQ card_present;	the second should be &C0.
 .card_absent
-	CLI
 	LDX #LO(no_card)
 	LDY #HI(no_card)
 	JMP error
 .card_present
-	CLI
 }	
 
 \\get value for top_page
