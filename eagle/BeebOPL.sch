@@ -22417,11 +22417,11 @@ power MOSFET</text>
 <text x="-109.22" y="-11.43" size="1.778" layer="97">Divide track to use
 IRQ jumper</text>
 <frame x1="-189.23" y1="-186.69" x2="198.12" y2="100.33" columns="8" rows="5" layer="91"/>
-<text x="97.79" y="-173.99" size="4.318" layer="97">Robert Lazarus
+<text x="93.98" y="-173.99" size="4.318" layer="97">Robert Lazarus
 https://github.com/lazarusr/beebopl</text>
-<wire x1="191.77" y1="-180.34" x2="66.04" y2="-180.34" width="0.1524" layer="97"/>
-<wire x1="66.04" y1="-180.34" x2="66.04" y2="-157.48" width="0.1524" layer="97"/>
-<wire x1="66.04" y1="-157.48" x2="191.77" y2="-157.48" width="0.1524" layer="97"/>
+<wire x1="191.77" y1="-180.34" x2="60.96" y2="-180.34" width="0.1524" layer="97"/>
+<wire x1="60.96" y1="-180.34" x2="60.96" y2="-157.48" width="0.1524" layer="97"/>
+<wire x1="60.96" y1="-157.48" x2="191.77" y2="-157.48" width="0.1524" layer="97"/>
 <wire x1="191.77" y1="-157.48" x2="191.77" y2="-180.34" width="0.1524" layer="97"/>
 </plain>
 <instances>
@@ -22543,7 +22543,7 @@ https://github.com/lazarusr/beebopl</text>
 <instance part="P+3" gate="1" x="-106.68" y="-93.98" smashed="yes">
 <attribute name="VALUE" x="-102.87" y="-97.79" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="LOGO1" gate="G$1" x="81.28" y="-167.64"/>
+<instance part="LOGO1" gate="G$1" x="77.47" y="-167.64"/>
 </instances>
 <busses>
 <bus name="D[0..7]">
