@@ -11,6 +11,7 @@
 /docs/*
 #schematic.pdf
 !/docs/schematic.pdf
+!/docs/pcb.pdf
 
 #ignore the macros file unless it contains something useful
 src/droplay_macros.h.6502
