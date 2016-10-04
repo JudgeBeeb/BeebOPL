@@ -9,9 +9,10 @@
 
 #ignore everything in the /docs directory
 /docs/*
-#schematic.pdf
+#except the ones I choose to add
 !/docs/schematic.pdf
-!/docs/pcb.pdf
+!/docs/pcb_top.png
+!/docs/pcb_bottom.png
 
 #ignore the macros file unless it contains something useful
-src/droplay_macros.h.6502
+/src/droplay_macros.h.6502
