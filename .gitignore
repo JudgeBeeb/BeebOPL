@@ -16,3 +16,6 @@
 
 #ignore the macros file unless it contains something useful
 /src/droplay_macros.h.6502
+
+#ignore the /opl3 directory because that is for later...
+/opl3
