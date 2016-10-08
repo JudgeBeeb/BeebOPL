@@ -101,6 +101,11 @@
 	EQUB 71;				error number
 	EQUS "Buffer failure - filing system too slow"
 	EQUB 0;					message termination character
+.card_ok
+	BRK;					BRK opcode
+	EQUB 72;				error number
+	EQUS "BeebOPL card detected"
+	EQUB 0;					message termination character
 \\NOT SURE HOW TO TRAP THIS ERROR
 .not_found
 	BRK;					BRK opcode

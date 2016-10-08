@@ -69,10 +69,10 @@ ELSE
 											;	the unused bits are undefined.
 	LDA #&02: STA ymaddr: LDA #&FF: STA ymdata;	Set timer 1 to &FF.
 	LDA #&04: STA ymaddr: LDA #&21: STA ymdata;	Unmask and start timer 1.
-	LDX #32
+	LDX #48;									Each loop lasts 5 cycles (2.5μsec); so 32=80μsec, 48=120μsec
 .delay_loop
 	DEX
-	BNE delay_loop;								Wait in a delay loop for at least 80 μsec.
+	BNE delay_loop;								Wait in a delay loop for at least 80μsec.
 	LDA ymaddr: AND #&E0: STA scratch_b;		Read status register. Save the result. 
 											;	You should AND the result bytes with &E0 because
 											;	the unused bits are undefined.
@@ -111,16 +111,32 @@ ENDIF
 	LDY #0
 	JSR osargs
 
-\\TO DO - check for a 'null' filename; if so, return syntax instructions and end
+\\check for a 'null' filename; if so, return syntax instructions and end
 	LDX #0
 	LDA (filename_address, X)
 	CMP #&0D;				termination string
-	BNE open_file
+	BNE not_null
 	LDX #LO(syntax_error)
 	LDY #HI(syntax_error)
 	JMP error
-
-.open_file	
+.not_null
+\\check for "-TEST" switch
+{
+	LDY #0
+.loop
+	LDA (filename_address), Y
+	CMP test, Y
+	BNE not_test
+	INY
+	CPY #5
+	BNE loop
+	LDX #LO(card_ok)
+	LDY #HI(card_ok)
+	JMP error
+.test
+	EQUS "-TEST"
+.not_test
+}
 	LDA #&40;				OPENIN
 	LDX filename_address
 	LDY filename_address+1
