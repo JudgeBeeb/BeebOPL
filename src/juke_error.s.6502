@@ -7,8 +7,8 @@
 	STY error_block+1
 
 \\restore escape status
-	LDA flags
-	CMP #%00000100;				check if bit 2 set
+	LDA #%00000100;				check if bit 2 set
+	BIT flags;				check if bit 2 set
 	BNE leave_esc_set
 	LDA #&0D;					disable event
 	LDX #6;						escape event code
@@ -16,6 +16,16 @@
 	JSR osbyte
 .leave_esc_set
 	
+\\restore character event status
+	LDA #%00100000;				check if bit 5 set
+	BIT flags
+	BNE leave_char_event_set
+	LDA #&0D;					disable event
+	LDX #6;						escape event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.leave_char_event_set
+
 \\restore EVNTV
 	LDA evntv_old
 	STA evntv
@@ -56,15 +66,18 @@
 }	
 .error_block
 	EQUW &0000
+\\BASIC errors
 .escape
 	BRK;					BRK opcode
 	EQUB 17;				error number
 	EQUS "Escape"
 	EQUB 0;					message termination character
+
+\\user errors	
 .syntax_error
 	BRK;					BRK opcode
 	EQUB 65;				error number
-	EQUS "Syntax: DROPLAY (<fsp>)(-TEST)"
+	EQUS "Syntax: JUKPLAY (<fsp>)(-TEST)"
 	EQUB 0;					message termination character
 .card_ok
 	BRK;					BRK opcode
@@ -106,9 +119,17 @@
 	EQUB 73;				error number
 	EQUS "Buffer failure - filing system too slow"
 	EQUB 0;					message termination character
-\\NOT SURE HOW TO TRAP THIS ERROR
+
+\\unique JUKE BOX errors
+.key_press
+	BRK;					BRK opcode
+	EQUB 97;				error number
+	EQUS "Key pressed!"
+	EQUB 0;					message termination character
+	
+\\MOS errors
 .not_found
 	BRK;					BRK opcode
 	EQUB 214;				error number
-	EQUS "Not found"
+	EQUS "File not found"
 	EQUB 0;					message termination character
