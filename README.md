@@ -26,17 +26,19 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [ ] Due to an inherent problem with OSGBPB, the filing system cannot keep up with the demands of particularly large/complex DRO files. The player effectively '_laps_' the circular buffer and starts repeating the same segment of the file.
 
-- [ ] Check if the entire DRO file will fit in memory and, if so, load it with `OSFILE` rather than `OSGBPB` to speed up loading times.
+- [x] ~~Check if the entire DRO file will fit in memory and, if so, load it with `OSFILE` rather than `OSGBPB` to speed up loading times.~~
 
 - [ ] Address continuing minor timing issues. DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond. 
 
 - [ ] check to see if player has overtaken buffer and issue error
 
-- [ ] The registers are flushed too soon. Need to leave time for the last note to fade.
+- [x] ~~The registers are flushed too soon. Need to leave time for the last note to fade.~~
 
 - [ ] Generally tidy up code; in particular using curly braces and local variables.
 
-- [ ] Jukebox inexplicably occasionally reports "BeebOPL card not found"
+- [x] ~~Juke Box inexplicably occasionally reports "BeebOPL card not found".~~
+
+- [ ] Add the Juke Box timer to Droplay as an option using a command line switch.
 
 Further down the line, I would like to see if the use of [Exomiser] (http://hem.bredband.net/magli143/exo/) could be incorporated.
 
@@ -44,4 +46,3 @@ I would also like to see if I could include **kieranhj**'s direct track loading 
 
 It would also be useful if there could be some kind of (software) master volume control.
 
-Finally, the utility provides no form of visual output. It would be nice to add something such as some Digital VU Meter Bars, or even just a progress counter.
