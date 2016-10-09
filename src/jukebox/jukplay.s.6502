@@ -1,6 +1,6 @@
 beebem=TRUE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
-ORG &2300;								TO DO - different ORGs for different systems?
+ORG &2500;								TO DO - different ORGs for different systems?
 
 INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
@@ -9,17 +9,16 @@ irq1v_old=&70;			(&70 and &71)
 irq2v_old=&70;			(&70 and &71);					We don't need to intercept both IRQ vectors, it is always one or the other
 mem_ptr=&72;			(&72 and &73);					Location in memory currently being played
 delay=&74;				(&74 and &75);					Outstanding duration of current delay (if not zero)
-filename_address=&76;	(&76, &77, &78 and &79);		Pointer to the <fsp> parsed to the commmand
-load_page=&7A
-top_page=&7B;											This is the page above the top of the circular buffer (i.e. the buffer doesn't extend into top_page)
-flags=&7C;												Bit 0 - set if EOF reached
+load_page=&76
+top_page=&77;											This is the page above the top of the circular buffer (i.e. the buffer doesn't extend into top_page)
+flags=&78;												Bit 0 - set if EOF reached
 													;	Bit 1 - set if end of tune reached
 													;	Bit 2 - set if escape was enabled before entry
 													;	Bit 3 - set if escape key has been pressed
 													;	Bit 4 - set if a (relevant) key has been pressed
 													;	Bit 5 - set if character event was enabled before entry
-old_ADC=&7D
-evntv_old=&7E;			(&7E and &7F)
+evntv_old=&79;			(&79 and &7A)
+filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to the commmand
 
 .start
 	PHP:PHA:TXA:PHA:TYA:PHA;		preserve all the registers on the stack	
@@ -52,9 +51,9 @@ evntv_old=&7E;			(&7E and &7F)
 	JSR osbyte
 	TXA
 	BEQ escape_not_set
-	LDA flags
+	LDA old_event_status
 	ORA #%00000100;			set bit 2
-	STA flags
+	STA old_event_status
 .escape_not_set
 
 \\enable character buffer events
@@ -63,9 +62,9 @@ evntv_old=&7E;			(&7E and &7F)
 	JSR osbyte
 	TXA
 	BEQ character_not_set
-	LDA flags
+	LDA old_event_status
 	ORA #%00100000;			set bit 5
-	STA flags
+	STA old_event_status
 .character_not_set
 
 \\get value for top_page
@@ -161,12 +160,12 @@ ENDIF
 	JMP error
 .no_escape
 }	
-\\test for key press
+\\test for f9 key press
 {	LDA flags
 	AND #%00010000; 			test bit 4 for character event
 	BEQ no_key
-	LDX #LO(key_press)
-	LDY #HI(key_press)
+	LDX #LO(f9_key)
+	LDY #HI(f9_key)
 	JMP error
 .no_key
 }
@@ -345,6 +344,92 @@ ENDIF
 	LDA #&21;				turn on timer 1 (and mask timer 2)
 	STA ymdata
 
+\\setup on screen timer
+\\place the colons
+	LDA #':'
+	STA bottom_row+34
+	LDA #'.'
+	STA bottom_row+37
+
+\\calculate timer value
+\\we need to divide the timer value from the header by 10
+\\this will crash if we have a tune that lasts longer than &FFFF hundredths of a second (i.e. more than 10 minutes 55 seconds )
+	
+\\load length_MS into dividend_lo and dividend_hi
+	LDA length_MS
+	STA dividend_lo
+	LDA length_MS+1
+	STA dividend_lo+1
+	LDA length_MS+2
+	STA dividend_hi
+	LDA length_MS+3
+	STA dividend_hi+1
+	
+\\load 10 into divisor
+	LDA #10
+	STA divisor
+	LDA #0
+	STA divisor+1
+	
+\\now do the division
+	JSR long_division
+	
+\\copy result into duration
+	LDA quotient
+	STA duration
+	LDA quotient+1
+	STA duration+1
+	LDA #0
+	STA duration+2
+	STA duration+3
+	STA duration+4
+
+\\calculate the inverse of this (interval timer counts up)	
+	SEC
+	LDA #0
+	SBC duration
+	STA duration
+	LDA #0
+	SBC duration+1
+	STA duration+1
+	LDA #0
+	SBC duration+2
+	STA duration+2
+	LDA #0
+	SBC duration+3
+	STA duration+3
+	LDA #0
+	SBC duration+4
+	STA duration+4
+	
+\\put value in interval timer
+	LDA #&4;			write interval timer
+	LDX #LO(duration)
+	LDY #HI(duration)
+	JSR osword
+	
+\\enable timer zero events
+	LDA #&0E;			enable event
+	LDX #5;				timer event
+	JSR osbyte
+	TXA
+	BEQ timer_zero_not_set
+	LDA old_event_status
+	ORA #%00000001;			set bit 0
+	STA old_event_status
+.timer_zero_not_set
+
+\\enable vsync events
+	LDA #&0E;			enable event
+	LDX #4;				vsync event
+	JSR osbyte
+	TXA
+	BEQ vsync_not_set
+	LDA old_event_status
+	ORA #%00000010;			set bit 1
+	STA old_event_status
+.vsync_not_set
+
 .head_page_loop
 \\test for escape
 {	LDA flags
@@ -355,12 +440,12 @@ ENDIF
 	JMP error
 .no_escape
 }
-\\test for key press
+\\test for f9 key press
 {	LDA flags
 	AND #%00010000; 			test bit 4 for character event
 	BEQ no_key
-	LDX #LO(key_press)
-	LDY #HI(key_press)
+	LDX #LO(f9_key)
+	LDY #HI(f9_key)
 	JMP error
 .no_key
 }
@@ -379,6 +464,7 @@ ENDIF
 	LDA #HI(buff_page)
 	STA load_page
 	STA control_load_page
+
 	
 .main_loop
 \\test for escape
@@ -390,12 +476,12 @@ ENDIF
 	JMP error
 .no_escape
 }
-\\test for key press
+\\test for f9 key press
 {	LDA flags
 	AND #%00010000; 			test bit 4 for character event
 	BEQ no_key
-	LDX #LO(key_press)
-	LDY #HI(key_press)
+	LDX #LO(f9_key)
+	LDY #HI(f9_key)
 	JMP error
 .no_key
 }
@@ -443,7 +529,7 @@ ENDIF
 .end_game
 {\\restore escape status
 	LDA #%00000100;				check if bit 2 set
-	BIT flags;				check if bit 2 set
+	BIT old_event_status
 	BNE leave_esc_set
 	LDA #&0D;					disable event
 	LDX #6;						escape event code
@@ -453,13 +539,33 @@ ENDIF
 	
 \\restore character event status
 	LDA #%00100000;				check if bit 5 set
-	BIT flags
+	BIT old_event_status
 	BNE leave_char_event_set
 	LDA #&0D;					disable event
-	LDX #6;						escape event code
+	LDX #2;						character event code
 	LDY #0;						because AUG says this is required
 	JSR osbyte
 .leave_char_event_set
+	
+\\restore timer zero event status
+	LDA #%00000001;				check if bit 0 set
+	BIT old_event_status
+	BNE leave_timer_event_set
+	LDA #&0D;					disable event
+	LDX #5;						timer event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.leave_timer_event_set
+	
+\\restore vsync event status
+	LDA #%00000010;				check if bit 1 set
+	BIT old_event_status
+	BNE leave_vsync_event_set
+	LDA #&0D;					disable event
+	LDX #4;						vsync event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.leave_vsync_event_set
 	
 \\restore EVNTV
 	LDA evntv_old
@@ -490,6 +596,16 @@ ENDIF
 	LDA #&10
 	LDX old_ADC
 	JSR osbyte
+	
+\\clean-up bottom row
+{
+	LDA #0
+	LDX #40
+.loop
+	DEX
+	STA bottom_row, X
+	BNE loop
+}	
 
 \\recover all the registers	
 	PLA:TAY:PLA:TAX:PLA:PLP
@@ -508,10 +624,17 @@ ENDIF
 	INX
 	BNE flush_loop
 	RTS
-	
+
+\\INCLUDES FOR ALL THE SUBROUTNES	
 INCLUDE "src\player.s.6502"
-INCLUDE "src\juke_event.s.6502"
-INCLUDE "src\juke_error.s.6502"
+INCLUDE "src\jukebox\juke_event.s.6502"
+INCLUDE "src\jukebox\juke_error.s.6502"
+INCLUDE "src\long_division.s.6502"
+INCLUDE "src\jukebox\juke_subroutines.s.6502"
+
+\\SETUP  MEMORY BLOCKS
+.check_signature
+	EQUS "DBRAWOPL"
 
 .control_block
 .control_file_handle; 	1 byte
@@ -529,14 +652,30 @@ INCLUDE "src\juke_error.s.6502"
 .control_ptr
 	EQUD &00000000;		4 bytes
 
-.check_signature
-	EQUS "DBRAWOPL"
+.end
 
 \\variables
-.pressed_key
+.column
 	EQUB &00
-	
-.end
+.minutes
+	EQUB &00
+.seconds
+	EQUB &00
+.hundredths
+	EQUB &00
+.duration
+	EQUD &00000000
+	EQUB &00
+.old_ADC
+	EQUB &00
+.old_event_status
+	EQUB &00;												Bit 0 - set if timer zero event was enabled before entry
+													;	Bit 1 - set if vsync event was enabled before entry
+													;	Bit 2 - set if escape was enabled before entry
+													;	Bit 3 - set if
+													;	Bit 4 - set if
+													;	Bit 5 - set if character event was enabled before entry
+
 
 \\dummy parameter block for osfile
 .osfile_block

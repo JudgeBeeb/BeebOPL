@@ -1,0 +1,137 @@
+.event_handler
+\\************************************************************************************
+\\CHARACTER IN INPUT BUFFER (2) EVENT
+	CMP #2; is A set with CHARACTER event number?
+	BNE no_f9
+	CPY #&89; 				f9 key
+	BNE no_f9
+	LDA flags
+	ORA #%00010000;			set bit 4
+	STA flags
+.no_f9
+	
+\\************************************************************************************
+\\**VSYNC (4) HANDLER
+	CMP #4; is A set with the vsync event number?
+	\ BNE no_vsync
+	BEQ vsync
+	JMP no_vsync
+.vsync	
+\\read interval timer
+	LDA #&3;			read interval timer
+	LDX #LO(duration)
+	LDY #HI(duration)
+	JSR osword
+	
+\\calculate remaining time
+	SEC
+	LDA #&00
+	SBC duration+0
+	STA dividend_lo
+	LDA #&00
+	SBC duration+1
+	STA dividend_lo+1
+	LDA #&00
+	SBC duration+2
+	STA dividend_hi+0
+	LDA #&00
+	STA dividend_hi+1;		I suspect we can't get rid of this byte, but lets see.
+	
+\\divide by 6000 to get number of minutes
+	LDA #LO(6000) 
+	STA divisor
+	LDA #HI(6000)
+	STA divisor+1
+	JSR long_division
+	LDA quotient;	get LSB of minutes (print routine won't handle more than 99 minutes)
+	STA minutes
+		
+\\divide remainder by 100 to get number of second
+\\need to understand how this works and then tidy it up
+\\see http://6502org.wikidot.com/software-math-intdiv
+	LDA remainder
+	STA seconds
+	LDA remainder+1
+	LDX #8
+	ASL seconds
+.L1 
+	ROL A
+	BCS L2
+	CMP #100
+	BCC L3
+.L2
+	SBC #100
+\\SEC is needed when the BCS L2 branch above was taken
+	SEC
+.L3
+	ROL seconds
+	DEX
+	BNE L1
+	STA hundredths
+	
+\\display routine
+	LDA #33
+	STA column
+	LDA minutes
+	JSR print_dec
+	LDA #36
+	STA column
+	LDA seconds
+	JSR print_dec
+	LDA #39
+	STA column
+	LDA hundredths
+	JSR print_dec
+	
+\\debugging display routine
+	LDA #4
+	STA column
+	LDA duration+4
+	JSR print_hex
+	LDA #7
+	STA column
+	LDA duration+3
+	JSR print_hex
+	LDA #10
+	STA column
+	LDA duration+2
+	JSR print_hex
+	LDA #13
+	STA column
+	LDA duration+1
+	JSR print_hex
+	LDA #16
+	STA column
+	LDA duration+0
+	JSR print_hex
+.no_vsync
+
+\\************************************************************************************
+\\TIMER ZERO (5) EVENT HANDLER
+	CMP #5;	is A set with the timer zero event number?
+	BNE no_timer
+	LDA #129; alpha red
+	STA bottom_row
+\\need to do something to change the timer to a count up timer
+\\for the time being just disable vsync events
+	LDA #&0D;					disable event
+	LDX #4;						vsync event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+\\and tidy-up the screen
+	LDA #'0'
+	STA bottom_row+39
+	LDA #'F'
+	STA bottom_row+16 
+.no_timer
+
+\\************************************************************************************
+\\ESCAPE (6) EVENT HANDLER
+	CMP #6; is A set with the ESCAPE event number?
+	BNE no_escape
+	LDA flags
+	ORA #%00001000;			set bit 3 (escape)
+	STA flags
+.no_escape
+	
+	JMP (evntv_old)

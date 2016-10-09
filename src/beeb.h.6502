@@ -74,3 +74,9 @@ scratch_f=&AD
 scratch_g=&AE
 scratch_h=&AF
 
+\\MODE 7 screen memory locations
+\\don't work if scrolling
+\\may not work on Master or B+ if using shadow ram
+bottom_row=&7FC0
+
+

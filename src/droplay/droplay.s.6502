@@ -406,8 +406,8 @@ ENDIF
 	RTS
 	
 INCLUDE "src\player.s.6502"
-INCLUDE "src\subroutines.s.6502"
-INCLUDE "src\error.s.6502"
+INCLUDE "src\droplay\subroutines.s.6502"
+INCLUDE "src\droplay\error.s.6502"
 
 .control_block
 .control_file_handle; 	1 byte

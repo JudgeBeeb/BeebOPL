@@ -8,7 +8,7 @@
 
 \\restore escape status
 	LDA #%00000100;				check if bit 2 set
-	BIT flags;				check if bit 2 set
+	BIT old_event_status
 	BNE leave_esc_set
 	LDA #&0D;					disable event
 	LDX #6;						escape event code
@@ -18,13 +18,33 @@
 	
 \\restore character event status
 	LDA #%00100000;				check if bit 5 set
-	BIT flags
+	BIT old_event_status
 	BNE leave_char_event_set
 	LDA #&0D;					disable event
-	LDX #6;						escape event code
+	LDX #2;						character event code
 	LDY #0;						because AUG says this is required
 	JSR osbyte
 .leave_char_event_set
+	
+\\restore timer zero event status
+	LDA #%00000001;				check if bit 0 set
+	BIT old_event_status
+	BNE leave_timer_event_set
+	LDA #&0D;					disable event
+	LDX #5;						timer event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.leave_timer_event_set
+	
+\\restore vsync event status
+	LDA #%00000010;				check if bit 1 set
+	BIT old_event_status
+	BNE leave_vsync_event_set
+	LDA #&0D;					disable event
+	LDX #4;						vsync event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.leave_vsync_event_set
 
 \\restore EVNTV
 	LDA evntv_old
@@ -61,6 +81,16 @@
 \\re-enable interrupts
 	CLI
 	
+\\clean-up bottom row
+{
+	LDA #0
+	LDX #40
+.loop
+	DEX
+	STA bottom_row, X
+	BNE loop
+}	
+
 \\generate error
 	JMP (error_block)
 }	
@@ -121,10 +151,10 @@
 	EQUB 0;					message termination character
 
 \\unique JUKE BOX errors
-.key_press
+.f9_key
 	BRK;					BRK opcode
 	EQUB 97;				error number
-	EQUS "Key pressed!"
+	EQUS "f9 pressed"
 	EQUB 0;					message termination character
 	
 \\MOS errors

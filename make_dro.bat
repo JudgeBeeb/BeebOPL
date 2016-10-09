@@ -30,7 +30,7 @@ REM -v						verbose output
 
 REM USE "|| pause" to stop the CMD windows closing if there is an error
 
-"C:\Program Files (x86)\beebasm1.08\beebasm.exe" -i "src\droplay.s.6502" -do "\\Mac\Home\Desktop\droplay.ssd" || pause
+"C:\Program Files (x86)\beebasm1.08\beebasm.exe" -i "src\droplay\droplay.s.6502" -do "\\Mac\Home\Desktop\droplay.ssd" || pause
 
 REM include the following lines if you want to see the screen come what may
 
