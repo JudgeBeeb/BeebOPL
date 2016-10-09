@@ -2,13 +2,12 @@
 {
 \\error should be entered with JMP (not JSR)
 \\on entry X contains the LO value of the relevant error block and Y contains the HI value
-\\can we use scrtach RAM in zero page
 	STX error_block
 	STY error_block+1
 
 \\restore escape status
-	LDA flags
-	CMP #%00000100;				check if bit 2 set
+	LDA #%00000100;				check if bit 2 set
+	BIT old_event_status
 	BNE leave_esc_set
 	LDA #&0D;					disable event
 	LDX #6;						escape event code
@@ -16,6 +15,36 @@
 	JSR osbyte
 .leave_esc_set
 	
+\ \\restore character event status
+	\ LDA #%00100000;				check if bit 5 set
+	\ BIT old_event_status
+	\ BNE leave_char_event_set
+	\ LDA #&0D;					disable event
+	\ LDX #2;						character event code
+	\ LDY #0;						because AUG says this is required
+	\ JSR osbyte
+\ .leave_char_event_set
+	
+\ \\restore timer zero event status
+	\ LDA #%00000001;				check if bit 0 set
+	\ BIT old_event_status
+	\ BNE leave_timer_event_set
+	\ LDA #&0D;					disable event
+	\ LDX #5;						timer event code
+	\ LDY #0;						because AUG says this is required
+	\ JSR osbyte
+\ .leave_timer_event_set
+	
+\ \\restore vsync event status
+	\ LDA #%00000010;				check if bit 1 set
+	\ BIT old_event_status
+	\ BNE leave_vsync_event_set
+	\ LDA #&0D;					disable event
+	\ LDX #4;						vsync event code
+	\ LDY #0;						because AUG says this is required
+	\ JSR osbyte
+\ .leave_vsync_event_set
+
 \\restore EVNTV
 	LDA evntv_old
 	STA evntv
@@ -51,20 +80,33 @@
 \\re-enable interrupts
 	CLI
 	
+\ \\clean-up bottom row
+\ {
+	\ LDA #0
+	\ LDX #40
+\ .loop
+	\ DEX
+	\ STA bottom_row, X
+	\ BNE loop
+\ }	
+
 \\generate error
 	JMP (error_block)
 }	
 .error_block
 	EQUW &0000
+\\BASIC errors
 .escape
 	BRK;					BRK opcode
 	EQUB 17;				error number
 	EQUS "Escape"
 	EQUB 0;					message termination character
+
+\\user errors	
 .syntax_error
 	BRK;					BRK opcode
 	EQUB 65;				error number
-	EQUS "Syntax: DROPLAY (<fsp>)(-TEST)"
+	EQUS "Syntax: JUKPLAY (<fsp>)(-TEST)"
 	EQUB 0;					message termination character
 .card_ok
 	BRK;					BRK opcode
@@ -106,9 +148,10 @@
 	EQUB 73;				error number
 	EQUS "Buffer failure - filing system too slow"
 	EQUB 0;					message termination character
-\\NOT SURE HOW TO TRAP THIS ERROR
+
+\\MOS errors
 .not_found
 	BRK;					BRK opcode
 	EQUB 214;				error number
-	EQUS "Not found"
+	EQUS "File not found"
 	EQUB 0;					message termination character

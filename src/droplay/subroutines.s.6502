@@ -1,9 +1,0 @@
-.event_handler
-{	CMP #6; is A set with the ESCAPE event number?
-	BNE no_escape
-	LDA flags
-	ORA #%00001000;			set bit 3 (escape)
-	STA flags
-.no_escape
-	JMP (evntv_old)
-}

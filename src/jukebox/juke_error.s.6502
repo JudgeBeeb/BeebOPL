@@ -2,7 +2,6 @@
 {
 \\error should be entered with JMP (not JSR)
 \\on entry X contains the LO value of the relevant error block and Y contains the HI value
-\\can we use scrtach RAM in zero page
 	STX error_block
 	STY error_block+1
 

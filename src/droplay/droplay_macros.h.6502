@@ -1,6 +1,0 @@
-MACRO pause cycles
-	cnt=(cycles div 2)+(cycles mod 2)
-	FOR n, 1, cnt
-		NOP
-	NEXT 
-ENDMACRO

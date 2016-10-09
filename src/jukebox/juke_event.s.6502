@@ -1,6 +1,6 @@
 .event_handler
 \\************************************************************************************
-\\CHARACTER IN INPUT BUFFER (2) EVENT
+\\CHARACTER IN INPUT BUFFER (2) EVENT HANDLER
 	CMP #2; is A set with CHARACTER event number?
 	BNE no_f9
 	CPY #&89; 				f9 key

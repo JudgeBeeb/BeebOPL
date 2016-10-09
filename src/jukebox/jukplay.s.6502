@@ -1,6 +1,6 @@
-beebem=TRUE;							Set to true if running in BeebEm for debugging
+beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
-ORG &2500;								TO DO - different ORGs for different systems?
+ORG &2500;
 
 INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
@@ -13,10 +13,13 @@ load_page=&76
 top_page=&77;											This is the page above the top of the circular buffer (i.e. the buffer doesn't extend into top_page)
 flags=&78;												Bit 0 - set if EOF reached
 													;	Bit 1 - set if end of tune reached
-													;	Bit 2 - set if escape was enabled before entry
+													;	Bit 2 - set if 
 													;	Bit 3 - set if escape key has been pressed
 													;	Bit 4 - set if a (relevant) key has been pressed
-													;	Bit 5 - set if character event was enabled before entry
+													;	Bit 5 - set if 
+													;	Bit 6 - set if
+													;	Bit 7 - set if
+													
 evntv_old=&79;			(&79 and &7A)
 filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to the commmand
 
@@ -669,13 +672,14 @@ INCLUDE "src\jukebox\juke_subroutines.s.6502"
 .old_ADC
 	EQUB &00
 .old_event_status
-	EQUB &00;												Bit 0 - set if timer zero event was enabled before entry
+	EQUB &00;											Bit 0 - set if timer zero event was enabled before entry
 													;	Bit 1 - set if vsync event was enabled before entry
 													;	Bit 2 - set if escape was enabled before entry
 													;	Bit 3 - set if
 													;	Bit 4 - set if
 													;	Bit 5 - set if character event was enabled before entry
-
+													;	Bit 6 - set if
+													;	Bit 7 - set if
 
 \\dummy parameter block for osfile
 .osfile_block

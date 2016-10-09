@@ -1,6 +1,6 @@
-beebem=TRUE;							Set to true if running in BeebEm for debugging
+beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
-ORG &1A00;								TO DO - different ORGs for different systems?
+ORG &1A00;
 
 INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
@@ -9,15 +9,19 @@ irq1v_old=&70;			(&70 and &71)
 irq2v_old=&70;			(&70 and &71);					We don't need to intercept both IRQ vectors, it is always one or the other
 mem_ptr=&72;			(&72 and &73);					Location in memory currently being played
 delay=&74;				(&74 and &75);					Outstanding duration of current delay (if not zero)
-filename_address=&76;	(&76, &77, &78 and &79);		Pointer to the <fsp> parsed to the commmand
-load_page=&7A
-top_page=&7B;											This is the page above the top of the circular buffer (i.e. the buffer doesn't extend into top_page)
-flags=&7C;												Bit 0 - set if EOF reached
+load_page=&76
+top_page=&77;											This is the page above the top of the circular buffer (i.e. the buffer doesn't extend into top_page)
+flags=&78;												Bit 0 - set if EOF reached
 													;	Bit 1 - set if end of tune reached
-													;	Bit 2 - set if escape was enabled before entry
+													;	Bit 2 - set if
 													;	Bit 3 - set if escape key has been pressed
-old_ADC=&7D
-evntv_old=&7E;			(&7E and &7F)
+													;	Bit 4 - set if
+													;	Bit 5 - set if
+													;	Bit 6 - set if
+													;	Bit 7 - set if
+
+evntv_old=&79;			(&79 and &7A)
+filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to the commmand
 
 .start
 	PHP:PHA:TXA:PHA:TYA:PHA;		preserve all the registers on the stack	
@@ -50,10 +54,21 @@ evntv_old=&7E;			(&7E and &7F)
 	JSR osbyte
 	TXA
 	BEQ escape_not_set
-	LDA flags
+	LDA old_event_status
 	ORA #%00000100;			set bit 2
-	STA flags
+	STA old_event_status
 .escape_not_set
+
+\ \\enable character buffer events
+	\ LDA #&0E;			enable event
+	\ LDX #2;				character buffer event
+	\ JSR osbyte
+	\ TXA
+	\ BEQ character_not_set
+	\ LDA old_event_status
+	\ ORA #%00100000;			set bit 5
+	\ STA old_event_status
+\ .character_not_set
 
 \\get value for top_page
 	LDA #&84
@@ -138,6 +153,80 @@ ENDIF
 	EQUS "-TEST"
 .not_test
 }
+
+\\test for escape before commencing long disk read
+{	LDA flags
+	AND #%00001000; 			test bit 3 for escape
+	BEQ no_escape
+	LDX #LO(escape)
+	LDY #HI(escape)
+	JMP error
+.no_escape
+}	
+\ \\test for f9 key press
+\ {	LDA flags
+	\ AND #%00010000; 			test bit 4 for character event
+	\ BEQ no_key
+	\ LDX #LO(f9_key)
+	\ LDY #HI(f9_key)
+	\ JMP error
+\ .no_key
+\ }
+
+\\get file length
+	LDA filename_address
+	STA osfile_filename_address
+	LDA filename_address+1
+	STA osfile_filename_address+1
+	LDA #5;								get catalogue entry
+	LDX #LO(osfile_block)
+	LDY #HI(osfile_block)
+	JSR osfile
+	BNE file_found;						A=0 if not found (I am assuming that the Z returns correctly conditioned)(it certainly seems to work)
+\\report error
+	LDX #LO(not_found)
+	LDY #HI(not_found)
+	JMP error
+.file_found
+
+\\check if file will fit in memory
+	LDA osfile_length+3
+	BNE too_big
+	LDA osfile_length+2
+	BNE too_big
+	LDA top_page;						this is the top of available memory
+	SEC;								prepare for subtraction
+	SBC #HI(head_page);					this is where data loads
+\\A now contains the number of available pages
+	CMP osfile_length+1;				there are three possible outcomes
+									;	Z is set - there are exactly the correct number of pages - will only fit if osfile_length=0
+									;	C is set (must only check after checking Z) - there is enough room
+									;   neither C nor Z is set - there is not enough room
+	BEQ check_remaining_bytes;			branch if Z set first
+	BCC too_big;						if C is not set then there is not enough_room
+	JMP	file_fits
+.check_remaining_bytes
+	LDA osfile_length
+	BNE too_big
+
+.file_fits
+\\now we need to load the full file
+	LDA #LO(head_page)
+	STA osfile_load_address
+	LDA #HI(head_page)
+	STA osfile_load_address+1
+	LDA #0
+	STA osfile_load_indicator;			tell osfile to use the load address we are specifying
+	LDA #&FF;							load file
+	JSR osfile
+\\iindicate that we have got to the end of the file
+	LDA flags
+	ORA #%00000001;			set bit 0 (EOF reached)
+	STA flags
+	JMP data_in_memory
+.too_big
+
+\\open file for sequential access
 	LDA #&40;				OPENIN
 	LDX filename_address
 	LDY filename_address+1
@@ -150,15 +239,6 @@ ENDIF
 .file_opened
 	STA control_file_handle
 
-\\test for escape before commencing long disk read
-{	LDA flags
-	AND #%00001000; 			test bit 3 for escape
-	BEQ no_escape
-	LDX #LO(escape)
-	LDY #HI(escape)
-	JMP error
-.no_escape
-}	
 \\get first few pages of data
 	LDA #4;					read block using PTR#
 	LDX #LO(control_block)
@@ -172,9 +252,10 @@ ENDIF
 	BCC initial_flush;		carry flag is set on exit if attempted to read beyond EOF
 \\handle EOF
 	LDA flags
-	ORA #%00000001;			set bit 0
+	ORA #%00000001;			set bit 0 (EOF reached)
 	STA flags
-	
+
+.data_in_memory	
 \\check if DRO file
 {
 	LDX #0
@@ -266,6 +347,92 @@ ENDIF
 	LDA #&21;				turn on timer 1 (and mask timer 2)
 	STA ymdata
 
+\ \\setup on screen timer
+\ \\place the colons
+	\ LDA #':'
+	\ STA bottom_row+34
+	\ LDA #'.'
+	\ STA bottom_row+37
+
+\ \\calculate timer value
+\ \\we need to divide the timer value from the header by 10
+\ \\this will crash if we have a tune that lasts longer than &FFFF hundredths of a second (i.e. more than 10 minutes 55 seconds )
+	
+\ \\load length_MS into dividend_lo and dividend_hi
+	\ LDA length_MS
+	\ STA dividend_lo
+	\ LDA length_MS+1
+	\ STA dividend_lo+1
+	\ LDA length_MS+2
+	\ STA dividend_hi
+	\ LDA length_MS+3
+	\ STA dividend_hi+1
+	
+\ \\load 10 into divisor
+	\ LDA #10
+	\ STA divisor
+	\ LDA #0
+	\ STA divisor+1
+	
+\ \\now do the division
+	\ JSR long_division
+	
+\ \\copy result into duration
+	\ LDA quotient
+	\ STA duration
+	\ LDA quotient+1
+	\ STA duration+1
+	\ LDA #0
+	\ STA duration+2
+	\ STA duration+3
+	\ STA duration+4
+
+\ \\calculate the inverse of this (interval timer counts up)	
+	\ SEC
+	\ LDA #0
+	\ SBC duration
+	\ STA duration
+	\ LDA #0
+	\ SBC duration+1
+	\ STA duration+1
+	\ LDA #0
+	\ SBC duration+2
+	\ STA duration+2
+	\ LDA #0
+	\ SBC duration+3
+	\ STA duration+3
+	\ LDA #0
+	\ SBC duration+4
+	\ STA duration+4
+	
+\ \\put value in interval timer
+	\ LDA #&4;			write interval timer
+	\ LDX #LO(duration)
+	\ LDY #HI(duration)
+	\ JSR osword
+	
+\ \\enable timer zero events
+	\ LDA #&0E;			enable event
+	\ LDX #5;				timer event
+	\ JSR osbyte
+	\ TXA
+	\ BEQ timer_zero_not_set
+	\ LDA old_event_status
+	\ ORA #%00000001;			set bit 0
+	\ STA old_event_status
+\ .timer_zero_not_set
+
+\ \\enable vsync events
+	\ LDA #&0E;			enable event
+	\ LDX #4;				vsync event
+	\ JSR osbyte
+	\ TXA
+	\ BEQ vsync_not_set
+	\ LDA old_event_status
+	\ ORA #%00000010;			set bit 1
+	\ STA old_event_status
+\ .vsync_not_set
+
 .head_page_loop
 \\test for escape
 {	LDA flags
@@ -276,6 +443,15 @@ ENDIF
 	JMP error
 .no_escape
 }
+\ \\test for f9 key press
+\ {	LDA flags
+	\ AND #%00010000; 			test bit 4 for character event
+	\ BEQ no_key
+	\ LDX #LO(f9_key)
+	\ LDY #HI(f9_key)
+	\ JMP error
+\ .no_key
+\ }
 \\if end of tune need to go to end
 	LDA flags
 	AND #%00000010; 			test bit 1 for end of tune
@@ -291,6 +467,7 @@ ENDIF
 	LDA #HI(buff_page)
 	STA load_page
 	STA control_load_page
+
 	
 .main_loop
 \\test for escape
@@ -302,6 +479,15 @@ ENDIF
 	JMP error
 .no_escape
 }
+\ \\test for f9 key press
+\ {	LDA flags
+	\ AND #%00010000; 			test bit 4 for character event
+	\ BEQ no_key
+	\ LDX #LO(f9_key)
+	\ LDY #HI(f9_key)
+	\ JMP error
+\ .no_key
+\ }
 \\TO DO what to do if player 'laps' the circular buffer ahead of slow disk reads
 \\if end of tune need to go to end
 	LDA flags
@@ -345,14 +531,44 @@ ENDIF
 	
 .end_game
 {\\restore escape status
-	LDA flags
-	CMP #%00000100;				check if bit 2 set
+	LDA #%00000100;				check if bit 2 set
+	BIT old_event_status
 	BNE leave_esc_set
 	LDA #&0D;					disable event
 	LDX #6;						escape event code
 	LDY #0;						because AUG says this is required
 	JSR osbyte
 .leave_esc_set
+	
+\ \\restore character event status
+	\ LDA #%00100000;				check if bit 5 set
+	\ BIT old_event_status
+	\ BNE leave_char_event_set
+	\ LDA #&0D;					disable event
+	\ LDX #2;						character event code
+	\ LDY #0;						because AUG says this is required
+	\ JSR osbyte
+\ .leave_char_event_set
+	
+\ \\restore timer zero event status
+	\ LDA #%00000001;				check if bit 0 set
+	\ BIT old_event_status
+	\ BNE leave_timer_event_set
+	\ LDA #&0D;					disable event
+	\ LDX #5;						timer event code
+	\ LDY #0;						because AUG says this is required
+	\ JSR osbyte
+\ .leave_timer_event_set
+	
+\ \\restore vsync event status
+	\ LDA #%00000010;				check if bit 1 set
+	\ BIT old_event_status
+	\ BNE leave_vsync_event_set
+	\ LDA #&0D;					disable event
+	\ LDX #4;						vsync event code
+	\ LDY #0;						because AUG says this is required
+	\ JSR osbyte
+\ .leave_vsync_event_set
 	
 \\restore EVNTV
 	LDA evntv_old
@@ -366,7 +582,7 @@ ENDIF
 	LDA #&60
 	STA ymdata
 
-\\close file
+\\close file - this is going to generate a 'Handle' error if we loaded the whole file - nope, apparently it's OK
 	LDA #0;					CLOSE
 	LDY control_file_handle
 	JSR osfind
@@ -379,13 +595,20 @@ ENDIF
 	STA irq1v+1
 	CLI
 
-\\YM3812 flush
-	JSR flush
-
 \\re-enable ADC sampling
 	LDA #&10
 	LDX old_ADC
 	JSR osbyte
+	
+\ \\clean-up bottom row
+\ {
+	\ LDA #0
+	\ LDX #40
+\ .loop
+	\ DEX
+	\ STA bottom_row, X
+	\ BNE loop
+\ }	
 
 \\recover all the registers	
 	PLA:TAY:PLA:TAX:PLA:PLP
@@ -404,10 +627,17 @@ ENDIF
 	INX
 	BNE flush_loop
 	RTS
-	
+
+\\INCLUDES FOR ALL THE SUBROUTNES	
 INCLUDE "src\player.s.6502"
-INCLUDE "src\droplay\subroutines.s.6502"
-INCLUDE "src\droplay\error.s.6502"
+INCLUDE "src\droplay\dro_event.s.6502"
+INCLUDE "src\droplay\dro_error.s.6502"
+\ INCLUDE "src\long_division.s.6502"
+\ INCLUDE "src\droplay\dro_subroutines.s.6502"
+
+\\SETUP  MEMORY BLOCKS
+.check_signature
+	EQUS "DBRAWOPL"
 
 .control_block
 .control_file_handle; 	1 byte
@@ -425,10 +655,46 @@ INCLUDE "src\droplay\error.s.6502"
 .control_ptr
 	EQUD &00000000;		4 bytes
 
-.check_signature
-	EQUS "DBRAWOPL"
-	
 .end
+
+\\variables
+\ .column
+	\ EQUB &00
+\ .minutes
+	\ EQUB &00
+\ .seconds
+	\ EQUB &00
+\ .hundredths
+	\ EQUB &00
+\ .duration
+	\ EQUD &00000000
+	\ EQUB &00
+.old_ADC
+	EQUB &00
+.old_event_status
+	EQUB &00;											Bit 0 - set if 
+													;	Bit 1 - set if 
+													;	Bit 2 - set if escape was enabled before entry
+													;	Bit 3 - set if
+													;	Bit 4 - set if
+													;	Bit 5 - set if 
+													;	Bit 6 - set if
+													;	Bit 7 - set if
+
+
+\\dummy parameter block for osfile
+.osfile_block
+.osfile_filename_address
+	EQUW &0000
+.osfile_load_address
+	EQUD &00000000
+.osfile_load_indicator
+.osfile_exec_adresss
+	EQUD &00000000
+.osfile_length
+	EQUD &00000000
+.osfile_lock_status
+	EQUB &00
 
 ALIGN &100
 .head_page;							This page contains the standard DRO header, plus the first few bytes of the music
@@ -460,10 +726,7 @@ ALIGN &100
 ALIGN &100
 .buff_page;							This is where the circular buffer (proper) starts. head_page must not be overwritten, because it contains the command table
 
-PUTFILE "music\SWARS", "SWARS", 0
-PUTFILE "music\fakes\SIG.BIN", "SIG", 0
-PUTFILE "music\fakes\VER.BIN", "VER", 0
-PUTFILE "music\fakes\HARD.BIN", "HARD", 0
-PUTFILE "music\fakes\COMP.BIN", "COMP", 0
+PUTFILE "music\BRAZIL", "BRAZIL", 0
+PUTFILE "music\INTRO", "INTRO", 0
 
 SAVE "DROPLAY", start, end
