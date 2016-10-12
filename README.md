@@ -40,6 +40,8 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [ ] Add the Juke Box timer to Droplay as an option using a command line switch.
 
+- [ ] The 3.mm jack socket is about 1mm too far over to the left and therefore does not fit well. This needs to be corrected if another run of boards is done.
+
 Further down the line, I would like to see if the use of [Exomiser] (http://hem.bredband.net/magli143/exo/) could be incorporated.
 
 I would also like to see if I could include **kieranhj**'s direct track loading routines using `OSWORD` (which he uses in his amazing [Mode 7 Video] (https://github.com/kieranhj/mode7-video) project). This may resolves the problems associated with `OSGBPB`.
