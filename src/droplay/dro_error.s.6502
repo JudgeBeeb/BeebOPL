@@ -6,7 +6,7 @@
 	STY error_block+1
 
 \\restore escape status
-	LDA #%00000100;				check if bit 2 set
+	LDA #%01000000;				check if bit 6 set
 	BIT old_event_status
 	BNE leave_esc_set
 	LDA #&0D;					disable event
@@ -16,7 +16,7 @@
 .leave_esc_set
 	
 \ \\restore character event status
-	\ LDA #%00100000;				check if bit 5 set
+	\ LDA #%00000100;				check if bit 2 set
 	\ BIT old_event_status
 	\ BNE leave_char_event_set
 	\ LDA #&0D;					disable event
@@ -26,7 +26,7 @@
 \ .leave_char_event_set
 	
 \ \\restore timer zero event status
-	\ LDA #%00000001;				check if bit 0 set
+	\ LDA #%00100000;				check if bit 5 set
 	\ BIT old_event_status
 	\ BNE leave_timer_event_set
 	\ LDA #&0D;					disable event
@@ -36,7 +36,7 @@
 \ .leave_timer_event_set
 	
 \ \\restore vsync event status
-	\ LDA #%00000010;				check if bit 1 set
+	\ LDA #%00010000;				check if bit 4 set
 	\ BIT old_event_status
 	\ BNE leave_vsync_event_set
 	\ LDA #&0D;					disable event
