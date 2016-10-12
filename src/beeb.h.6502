@@ -79,4 +79,62 @@ scratch_h=&AF
 \\may not work on Master or B+ if using shadow ram
 bottom_row=&7FC0
 
+\\POTENTIALLY AVAILABLE ZERO PAGE SPACE
+\\
+\\			AUG												JGH								my uses
+\\ &70		reserved for user
+\\ &71		reserved for user
+\\ &72		reserved for user
+\\ &73		reserved for user
+\\ &74		reserved for user
+\\ &75		reserved for user
+\\ &76		reserved for user
+\\ &77		reserved for user
+\\ &78		reserved for user
+\\ &79		reserved for user
+\\ &7A		reserved for user
+\\ &7B		reserved for user
+\\ &7C		reserved for user
+\\ &7D		reserved for user
+\\ &7E		reserved for user
+\\ &7F		reserved for user
+\\ &80		reserved for user
+\\ &81		reserved for user
+\\ &82		reserved for user
+\\ &83		reserved for user
+\\ &84		reserved for user
+\\ &85		reserved for user
+\\ &86		reserved for user
+\\ &87		reserved for user
+\\ &88		reserved for user
+\\ &89		reserved for user
+\\ &8A		reserved for user
+\\ &8B		reserved for user
+\\ &8C		reserved for user
+\\ &8D		reserved for user
+\\ &8E		reserved for user
+\\ &8F		reserved for user
+\\ &90		allocated to ECONET								appear to be unused	
+\\ &91		allocated to ECONET								appear to be unused	
+\\ &92		allocated to ECONET								appear to be unused	
+\\ &93		allocated to ECONET								appear to be unused	
+\\ &94		allocated to ECONET								appear to be unused	
+\\ &95		allocated to ECONET								appear to be unused	
+\\ &96		allocated to ECONET								appear to be unused
+
+\\ &A8		allocated to OS commands during execution		transient command space			used by long division
+\\ &A9		allocated to OS commands during execution		transient command space			used by long division
+\\ &AA		allocated to OS commands during execution		transient command space			used by long division
+\\ &AB		allocated to OS commands during execution		transient command space			used by long division
+\\ &AC		allocated to OS commands during execution		transient command space			used by long division
+\\ &AD		allocated to OS commands during execution		transient command space			used by long division
+\\ &AE		allocated to OS commands during execution		transient command space			used by long division
+\\ &AF		allocated to OS commands during execution		transient command space			used by long division
+
+\\ &DA		temporary vdu workspace							temporary vdu workspace
+\\ &DB		temporary vdu workspace							temporary vdu workspace
+\\ &DC		temporary vdu workspace							temporary vdu workspace
+\\ &DD		temporary vdu workspace							temporary vdu workspace
+\\ &DE		temporary vdu workspace							temporary vdu workspace
+\\ &DF		temporary vdu workspace							temporary vdu workspace
 
