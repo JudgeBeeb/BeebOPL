@@ -41,9 +41,9 @@
 	ROL math_block+2     	; Shift high cell of dividend left one bit, also
 	ROL math_block+3     	; shifting next bit in from high bit of low cell.
 	LDA #0
-	STA CARRY   			; Zero old bits of CARRY so subtraction works right.
-	ROL CARRY   			; Store old high bit of dividend in CARRY.  (For STZ
-							; one line up, NMOS 6502 will need LDA #0, STA CARRY.)
+	STA carry   			; Zero old bits of carry so subtraction works right.
+	ROL carry   			; Store old high bit of dividend in carry.  (For STZ
+							; one line up, NMOS 6502 will need LDA #0, STA carry.)
 	SEC         			; See if divisor will fit into high 17 bits of dividend
 	LDA math_block+2     	; by subtracting and then looking at carry flag.
 	SBC math_block       	; First do low byte.
@@ -51,7 +51,7 @@
 	LDA math_block+3     	;
 	SBC math_block+1     	; Then do high byte.
 	TAY         			; Save difference high byte until we know if we need it.
-	LDA CARRY   			; Bit 0 of CARRY serves as 17th bit.
+	LDA carry   			; Bit 0 of carry serves as 17th bit.
 	SBC #0      			; Complete the subtraction by doing the 17th bit before
 	BCC loop    			; determining if the divisor fit into the high 17 bits
 							; of  the dividend.  If so, the carry flag remains set.
@@ -68,6 +68,13 @@
 .end
 	RTS
 }
+.bottom_of_divide
+
+\\ if this routine is being used in a loop use zp for workspace
+IF repeated_long_division
+	ORG &A8
+ENDIF
+
 .math_block
 .divisor
 	EQUW &0000
@@ -79,5 +86,36 @@
 	EQUW &0000
 .scratchpad
 	EQUB &00
-.CARRY
+.carry
 	EQUB &00
+
+\\ if we used zp above, need to go back to the next available assembly space	
+IF repeated_long_division
+	ORG bottom_of_divide
+ENDIF
+	
+	
+\\see http://psy.swansea.ac.uk/staff/Carter/projects/BBC_Millisec.htm	
+	
+\ .divide                  \performs 2 byte division  (byte/val)
+	\ LDX #&FF
+\ .convloop
+	\ SEC                      \set borrow for subtraction
+	\ INX
+	\ LDA lobyte
+	\ SBC loval
+	\ STA lobyte               \subtract lo-byte
+	\ LDA hibyte
+	\ SBC hival
+	\ STA hibyte               \subtract hi-byte
+	\ BCS convloop             \continue if remainder > divisor
+	\ TXA
+	\ STA answer,Y             \store quotient
+	\ LDA lobyte
+	\ CLC
+	\ ADC loval
+	\ STA lobyte               \add back divisor lo-byte
+	\ LDA hibyte
+	\ ADC hival
+	\ STA hibyte               \add back divisor hi-byte
+	\ RTS
