@@ -24,3 +24,6 @@
 #ignore the /src/droplay/old_version directory
 /src/droplay/old_version
 
+#ignore music files that have a corrupted ending
+/music/*.noend
+
