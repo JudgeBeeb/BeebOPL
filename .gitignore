@@ -13,9 +13,14 @@
 !/docs/schematic.pdf
 !/docs/pcb_top.png
 !/docs/pcb_bottom.png
+!/docs/user_guide.pdf
 
 #ignore the /opl3 directory because that is for later...
 /opl3
 
 #ignore the /reference directory because that is just for me...
 /reference
+
+#ignore the /src/droplay/old_version directory
+/src/droplay/old_version
+
