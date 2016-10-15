@@ -2,7 +2,7 @@ beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
 ORG &2500;
 
-INCLUDE "src\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
+INCLUDE "lib\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
 \\zero page variables
 irq1v_old=&70;			(&70 and &71)
@@ -629,10 +629,10 @@ ENDIF
 	RTS
 
 \\INCLUDES FOR ALL THE SUBROUTNES	
-INCLUDE "src\player.s.6502"
+INCLUDE "src\jukebox\player.s.6502"
 INCLUDE "src\jukebox\juke_event.s.6502"
 INCLUDE "src\jukebox\juke_error.s.6502"
-INCLUDE "src\long_division.s.6502"
+INCLUDE "src\jukebox\long_division.s.6502"
 INCLUDE "src\jukebox\juke_subroutines.s.6502"
 
 \\SETUP  MEMORY BLOCKS
@@ -724,23 +724,5 @@ ALIGN &100
 								;	Since the max size of the command table is &80 bytes, the music will begin at the most at &9A
 ALIGN &100
 .buff_page;							This is where the circular buffer (proper) starts. head_page must not be overwritten, because it contains the command table
-
-PUTFILE "music\jukebox\ARIA", "ARIA", 0
-PUTFILE "music\jukebox\BUSY", "BUSY", 0
-PUTFILE "music\jukebox\CLASSY", "CLASSY", 0
-PUTFILE "music\jukebox\CLOCK", "CLOCK", 0
-PUTFILE "music\jukebox\CRYSTAL", "CRYSTAL", 0
-PUTFILE "music\jukebox\ELECROK", "ELECROK", 0
-PUTFILE "music\jukebox\HIGHWAY", "HIGHWAY", 0
-PUTFILE "music\jukebox\PARADE", "PARADE", 0
-PUTFILE "music\jukebox\RAIL", "RAIL", 0
-PUTFILE "music\jukebox\RAIN", "RAIN", 0
-PUTFILE "music\jukebox\REGGAE", "REGGAE", 0
-PUTFILE "music\jukebox\RUSH", "RUSH", 0
-PUTFILE "music\jukebox\SAINTS", "SAINTS", 0
-PUTFILE "music\jukebox\SOFT", "SOFT", 0
-PUTFILE "music\jukebox\SPRING", "SPRING", 0
-PUTFILE "music\jukebox\SPY", "SPY", 0
-PUTFILE "music\jukebox\ZARDOZ", "ZARDOZ", 0
 
 SAVE "JUKPLAY", start, end

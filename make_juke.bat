@@ -30,7 +30,7 @@ REM -v						verbose output
 
 REM USE "|| pause" to stop the CMD windows closing if there is an error
 
-"C:\Program Files (x86)\beebasm1.08\beebasm.exe" -i "src\jukebox\jukplay.s.6502" -di "src\jukebox\jukeplay_template.ssd" -do "\\Mac\Home\Desktop\jukebox.ssd" || pause
+"C:\Program Files (x86)\beebasm1.08\beebasm.exe" -i "src\jukebox\jukplay.s.6502" -di "src\jukebox\jukebox_template.ssd" -do "\\Mac\Home\Desktop\jukebox.ssd" || pause
 
 REM include the following lines if you want to see the screen come what may
 

@@ -110,6 +110,16 @@
 	STA column
 	LDA duration+0
 	JSR print_hex
+	
+	LDA #25
+	STA column
+	LDA mem_ptr+1
+	JSR print_hex
+	LDA #27
+	STA column
+	LDA mem_ptr
+	JSR print_hex
+
 .no_vsync
 
 \\************************************************************************************
