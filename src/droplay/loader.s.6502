@@ -1,0 +1,111 @@
+\\this all comes after:
+\\	- the initial load to fill all the buffer space from head_page to top_page
+\\	- setting mem_ptr to the start of the tune
+\\	- initialising all the events and interrupts
+	
+\\set load_page to buff_page (because that is where the next page is going to be loaded)
+	LDA #HI(buff_page)
+	STA load_page
+.loader
+\\CHECKS TO SEE IF IT IS SAFE TO LOAD
+\\===================================
+\\in each case, if the checked condition is true, we branch to done_loading
+
+\\mem_ptr is only in head_page once; after that the loop always starts from buff_page
+\\so, if mem_ptr is in head_page, we have to wait for it to move on
+	LDA mem_ptr+1
+	CMP #HI(head_page)
+	BEQ done_loading
+
+\\if mem_ptr is in load_page, we have to wait for it to move on before we can load
+\\otherwise, we will overwrite the data that mem_ptr is still reading
+	\\assuming that A has not been corrupted from LDA mem_ptr+1 abvove
+	CMP load_page
+	BEQ done_loading
+	
+\\if we have reached EOF, there is nothing to load
+	LDA flags
+	AND #%00000001; 			test bit 0 for EOF
+	BNE done_loading;			when check bits with AND, BNE is what we do if the bit ~IS~ set
+
+\\LOAD THE NEXT PAGE OF DATA
+\\==========================
+\\load the next page of data	
+	LDA #1;					set control_pages_to_read to 1
+	STA control_pages_to_read
+	LDA load_page;			set the page to read into
+	STA control_load_page
+	LDA #4;					read block using PTR#
+	LDX #LO(control_block)
+	LDY #HI(control_block)
+	\\the other values are already pre-programmed in the control block from the initial load
+	CLC
+	JSR osgbpb
+	BCC inc_load_page;		carry flag is set on exit if attempted to read beyond EOF
+\\handle EOF
+	LDA flags
+	ORA #%00000001;			set bit 0 (for EOF)
+	STA flags
+	\\we should have returned from osgbpb with the correct address loaded in tune_end
+	
+	JMP done_loading;		no point in wasting time incrementing load_page
+
+\\INCREMENT load_page READY FOR THE NEXT READ
+\\===========================================
+\\ if we haven't reached EOF we have to increment load_page ready for the next read
+.inc_load_page
+	INC load_page
+	
+\\check if we have gone beyond the buffer	
+	LDA load_page
+	CMP top_page
+	BNE done_loading
+	LDA #HI(buff_page)
+	STA load_page
+.done_loading
+
+\\CHECKS TO SEE IF WE CAN EXIT THE PROGRAM
+\\=========================================
+\\check to see if escape has been pressed
+{	LDA flags
+	AND #%00001000; 			test bit 3 for escape
+	BEQ no_escape
+	LDX #LO(escape)
+	LDY #HI(escape)
+	JMP error
+.no_escape
+}
+\\check to see if the player has lapped the loader
+{
+	LDA #%00000100; 			test bit 2 to see if player has lapped loader
+	BIT flags
+	BEQ not_lapped;				branch if zero (i.e. the lapped flag is not set)
+	LDX #LO(buffer_fail)
+	LDY #HI(buffer_fail)
+	JMP error
+.not_lapped
+}
+\\check to see if we have reached the end of the tune
+{
+	LDA #%00000010;					test bit 1 (end of tune)
+	BIT flags
+	BEQ loader;						branch (i.e. go back round again) if result is zero (i.e. not end of tune)
+	
+\ \\if we have reached EOF, have we also reached end of tune?
+	\ LDA mem_ptr;					check LSB of mem_ptr
+	\ CMP tune_end;					against LSB of tune_end
+	\ BNE not_end_of_tune
+	\ LDA mem_ptr+1;					check MSB of mem_ptr
+	\ CMP tune_end+1;					against MSB of tune_end
+	\ BEQ end_game
+\ .not_end_of_tune
+}
+\ {	LDA flags
+	\ AND #%00000010; 			test bit 1 for end of tune
+	\ BEQ not_end_of_tune
+	\ JMP end_game
+\ .not_end_of_tune
+\ }
+\\AND BACK AROUND THE LOOP AGAIN
+\\==============================
+\\ fall through to end_game
