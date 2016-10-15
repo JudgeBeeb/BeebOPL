@@ -4,8 +4,58 @@
 \\on entry X contains the LO value of the relevant error block and Y contains the HI value
 	STX error_block
 	STY error_block+1
+	
+\\turn off YM3812 timer
+	LDA #&04					
+	STA ymaddr
+	LDA #&60
+	STA ymdata
 
-\\restore escape status
+\\restore IRQV
+	SEI
+	LDA irq1v_old
+	STA irq1v
+	LDA irq1v_old+1
+	STA irq1v+1
+\\re-enable interrupts
+	CLI
+
+\\re-enable ADC sampling
+	LDA #&10
+	LDX old_ADC
+	JSR osbyte
+
+\ \ \\restore character event status
+	\ \ LDA #%00000100;				check if bit 2 set
+	\ \ BIT old_event_status
+	\ \ BNE leave_char_event_set
+	\ \ LDA #&0D;					disable event
+	\ \ LDX #2;						character event code
+	\ \ LDY #0;						because AUG says this is required
+	\ \ JSR osbyte
+\ \ .leave_char_event_set
+	
+\\restore vsync event status
+	LDA #%00010000;				check if bit 4 set
+	BIT old_event_status
+	BNE leave_vsync_event_set
+	LDA #&0D;					disable event
+	LDX #4;						vsync event code
+	LDY #0;						because AUG says this is required
+	JSR osbyte
+.leave_vsync_event_set
+
+\ \ \\restore timer zero event status
+	\ \ LDA #%00100000;				check if bit 5 set
+	\ \ BIT old_event_status
+	\ \ BNE leave_timer_event_set
+	\ \ LDA #&0D;					disable event
+	\ \ LDX #5;						timer event code
+	\ \ LDY #0;						because AUG says this is required
+	\ \ JSR osbyte
+\ \ .leave_timer_event_set
+
+\\restore escape event status
 	LDA #%01000000;				check if bit 6 set
 	BIT old_event_status
 	BNE leave_esc_set
@@ -15,70 +65,18 @@
 	JSR osbyte
 .leave_esc_set
 	
-\ \\restore character event status
-	\ LDA #%00000100;				check if bit 2 set
-	\ BIT old_event_status
-	\ BNE leave_char_event_set
-	\ LDA #&0D;					disable event
-	\ LDX #2;						character event code
-	\ LDY #0;						because AUG says this is required
-	\ JSR osbyte
-\ .leave_char_event_set
-	
-\ \\restore timer zero event status
-	\ LDA #%00100000;				check if bit 5 set
-	\ BIT old_event_status
-	\ BNE leave_timer_event_set
-	\ LDA #&0D;					disable event
-	\ LDX #5;						timer event code
-	\ LDY #0;						because AUG says this is required
-	\ JSR osbyte
-\ .leave_timer_event_set
-	
-\ \\restore vsync event status
-	\ LDA #%00010000;				check if bit 4 set
-	\ BIT old_event_status
-	\ BNE leave_vsync_event_set
-	\ LDA #&0D;					disable event
-	\ LDX #4;						vsync event code
-	\ LDY #0;						because AUG says this is required
-	\ JSR osbyte
-\ .leave_vsync_event_set
-
 \\restore EVNTV
 	LDA evntv_old
 	STA evntv
 	LDA evntv_old+1
 	STA evntv+1
-	
-\\turn off YM3812 timer
-	LDA #&04					
-	STA ymaddr
-	LDA #&60
-	STA ymdata
 
+\\NEED TO FIND A WAY TO PREVENT CHANNEL ERROR IF NO FILE OPENED
 \\close file
 	LDA #0;					CLOSE
-	LDY control_file_handle
+	\ LDY control_file_handle
+	LDY #0;						close all files
 	JSR osfind
-
-\\restore IRQV
-	SEI
-	LDA irq1v_old
-	STA irq1v
-	LDA irq1v_old+1
-	STA irq1v+1
-
-\\YM3812 flush
-	JSR flush
-
-\\re-enable ADC sampling
-	LDA #&10
-	LDX old_ADC
-	JSR osbyte
-
-\\re-enable interrupts
-	CLI
 	
 \ \\clean-up bottom row
 \ {
@@ -90,7 +88,11 @@
 	\ BNE loop
 \ }	
 
+\YM3812 flush
+	JSR flush
+
 \\generate error
+NOP
 	JMP (error_block)
 }	
 .error_block
@@ -106,7 +108,7 @@
 .syntax_error
 	BRK;					BRK opcode
 	EQUB 65;				error number
-	EQUS "Syntax: JUKPLAY (<fsp>)(-TEST)"
+	EQUS "Syntax: DROPLAY (<fsp>)(-TEST)"
 	EQUB 0;					message termination character
 .card_ok
 	BRK;					BRK opcode
@@ -147,6 +149,11 @@
 	BRK;					BRK opcode
 	EQUB 73;				error number
 	EQUS "Buffer failure - filing system too slow"
+	EQUB 0;					message termination character
+.odd_number
+	BRK;					BRK opcode
+	EQUB 74;				error number
+	EQUS "DRO data starts at an odd numbered memory location - Please submit tune for testing"
 	EQUB 0;					message termination character
 
 \\MOS errors

@@ -10,13 +10,13 @@
 	\ STA flags
 \ .no_f9
 	
-\ \\************************************************************************************
-\ \\**VSYNC (4) HANDLER
-	\ CMP #4; is A set with the vsync event number?
-	\ \ BNE no_vsync
-	\ BEQ vsync
-	\ JMP no_vsync
-\ .vsync	
+\\************************************************************************************
+\\**VSYNC (4) HANDLER
+	CMP #4; is A set with the vsync event number?
+	\ BNE no_vsync
+	BEQ vsync
+	JMP no_vsync
+.vsync	
 \ \\read interval timer
 	\ LDA #&3;			read interval timer
 	\ LDX #LO(duration)
@@ -69,7 +69,35 @@
 	\ BNE L1
 	\ STA hundredths
 	
-\ \\display routine
+\\display routine
+LDA #17
+STA column
+LDA flags
+JSR print_hex
+
+LDA #21
+STA column
+LDA control_pages_to_read
+JSR print_hex
+
+LDA #27
+STA column
+LDA mem_ptr+1
+JSR print_hex
+LDA #29
+STA column
+LDA mem_ptr
+JSR print_hex
+
+LDA #33
+STA column
+LDA tune_end+1
+JSR print_hex
+LDA #35
+STA column
+LDA tune_end
+JSR print_hex
+
 	\ LDA #33
 	\ STA column
 	\ LDA minutes
@@ -104,7 +132,7 @@
 	\ STA column
 	\ LDA duration+0
 	\ JSR print_hex
-\ .no_vsync
+.no_vsync
 
 \ \\************************************************************************************
 \ \\TIMER ZERO (5) EVENT HANDLER
