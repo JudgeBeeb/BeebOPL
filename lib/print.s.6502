@@ -1,0 +1,84 @@
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+\\ THESE ARE JGH'S PRINT ROUTINES
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+.print_dec
+{
+\\see http://www.stardot.org.uk/forums/viewtopic.php?f=2&t=10511#p150590
+\\prints the decimal value of A at column
+\\print decimal number by converting it to BCD
+\\need to understandhow this works
+	TAX;				Transfer number to X
+	LDA #&99;			Start with -1 in BCD form
+	SED;				Switch to Decimal arithmetic
+.loop
+	CLC
+	ADC #1;				Add 1 with BCD arithmetic
+	DEX
+	BPL loop;			Add 1 for the total in X until X<0
+	CLD;				Switch back to Binary arithmetic
+}
+\\Fall through into a standard print_hex routine 
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+.print_hex
+{
+\\see http://www.stardot.org.uk/forums/viewtopic.php?f=2&t=10511#p127307
+\\prints the hex value of A at column
+\\need to understand how this works
+	LDY #0
+	STY scratch_a
+	PHA
+	LSR A:LSR A:LSR A:LSR A
+	JSR print_nibble
+	PLA
+.print_nibble
+	AND #15
+	CMP #10
+	BCC print_digit
+	ADC #6
+.print_digit
+	ADC #'0'
+	JMP oswrch
+}
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+\\Print inline text
+\\see http://www.stardot.org.uk/forums/viewtopic.php?f=2&t=10511#p127306
+\\It prints a string of text that is located immediately after the instruction calling the routine
+
+\\		JSR print_text
+\\		EQUS "text message", 0
+\\		execution continues here...
+
+\\alternatively, if CR, NL is needed
+
+\\		JSR print_text
+\\		EQUS "text message", 13, 0
+\\		execution continues here...
+
+\\ the routne corrupts A and Y
+ 
+.print_text
+{
+	PLA:STA &F6:PLA:STA &F7;			pull the old program counter off the stack and store it at &F6/&F7
+									;	&F6/7 are allowed to be used as they are only otherwise used when calling OSRDRM and when ROMFS makes sideways ROM calls.
+									;	As you can't *SPOOL text to ROMFS as it is a read-only filing system printing 
+									;	text won't result in a ROMFS filing system call that uses &F6/&F7.
+	
+	LDY #1;								use Y to count how long the text and to identify where to return to
+.loop
+	LDA (&F6),Y;						this will load a character from after the JSR print_text call
+	BEQ end;							if it is zero, we have reached the end of the text
+	JSR osasci;							print the character
+	INY
+	BNE loop;							go round the loop again (unless the text is 256 bytes long, Y will never be zero)
+.end
+	CLC
+	TYA
+	ADC &F6;							add Y to &F6 to calculate where to return to
+	TAY;								keep it in Y for the time being
+	LDA #0
+	ADC &F7;							deal with any possible carry over to &F7
+	PHA:TYA:PHA;						put these modified values back on the stack
+	RTS
+}
