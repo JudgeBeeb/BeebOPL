@@ -1,0 +1,240 @@
+.irq_handler
+	LDA &FC:PHA:TXA:PHA:TYA:PHA
+\\check if this interrupt is for us
+\\both bits 6 and 7 of the status byte should be set
+\\why do I need to test for both? In what circumstances would bit 6 be set but not bit 7?
+	BIT ymaddr;						both V (bit 6) and N (bit 7) should now be set
+	\ BPL done_irq;					branch if N=0
+	BVC done_irq;					branch of V=0
+
+\\reset IRQ
+	LDA #&04
+	STA ymaddr
+	LDA #&80
+	STA ymdata
+
+\\check if end of tune or lapped loader or escape key pressed
+	LDA #%00001110;					test bit 1 (end of tune); bit 2 (lapped loader); bit 3 (escape)
+	BIT flags
+	BNE done_irq;					branch if result is not zero (i.e. at least one of the flags is set)
+
+\\============================================================================
+\\check for non zero delay and, if so, decrement
+	LDA delay;						get LSB of delay
+	BNE lsb_delay_dec;				and if it is not zero proceed to decrement
+	LDA delay+1;					get MSB of delay
+	BEQ player;						and if it is zero we should be playing tones
+	DEC delay+1;					decrement MSB
+.lsb_delay_dec
+	DEC delay;						decrement LSB
+\\============================================================================
+
+.done_irq
+	PLA:TAY:PLA:TAX:PLA:STA &FC
+	JMP (irq1v_old)
+
+.player
+\\============================================================================
+{
+\\are we at EOF?
+	BIT flags;						bit 6 (EOF) is now in V
+	BVC not_end_of_tune;			branch if V=0 (i.e. not EOF)
+	
+\\if we have reached EOF, have we also reached end of tune
+	LDA mem_ptr;					check LSB of mem_ptr
+	CMP tune_end;					against LSB of tune_end
+	\\final_bytes isn't working at the moment
+	\ CMP final_bytes;				against final_bytes (more accurate than LSB of tune_end)
+	BNE not_end_of_tune
+	LDA mem_ptr+1;					check MSB of mem_ptr
+	CMP tune_end+1;					against MSB of tune_end
+	BNE not_end_of_tune
+
+\\set the end of tune flag
+	LDA flags
+	ORA #%00000010;					set bit 1 (end of tune)
+	STA flags
+	JMP done_irq
+	
+.not_end_of_tune
+}
+\\============================================================================
+
+\\get next command
+	LDY #0 
+	LDA (mem_ptr),Y;			get first byte
+	
+\\check if this is an instruction to set up a new delay
+\\first check if it is a short delay
+	CMP short_delay_code
+	BEQ short_delay
+
+\\then check if it is a long delay
+	CMP long_delay_code
+	BEQ long_delay
+	
+\\if it isn't a delay it must be a command code
+	TAX;									put the value into X to use it as an offset in the command table
+	LDA cmd_table, X;						get the register address from the command table
+	STA ymaddr;								and send it to ymaddr
+	
+	INY;									proceed to the next byte 
+	LDA (mem_ptr),Y
+	STA ymdata;								and place it in ymdata
+	
+\\next we have to increment mem_ptr by two
+{
+	INC mem_ptr
+	INC mem_ptr
+	BNE player;						if that didn't result in zero we haven't crossed a page boundary and can go round the player again
+								;	what if mem_ptr started on an odd number? in practice it never has
+								; 	NEED TO DEAL WITH THE POSSIBILITY OF ODD NUMBERS (I have set up an error routine for this for the time being)
+	INC mem_ptr+1
+
+\\check if we have reached top_page and have to go back to the bottom of the circular buffer	
+	LDA mem_ptr+1
+	CMP top_page;				if mem_ptr has reached top_page, we need to go back to the beginning of the circular buffer
+	BNE not_at_top_page
+	LDA #HI(buff_page)
+	STA mem_ptr+1
+.not_at_top_page
+	
+\\as mem_ptr has now crossed a page boundary, need to check if player has lapped loader
+
+\\first, has mem_ptr just moved on from head_page?
+\\if so, mem_ptr=load_page
+\\but this isn't a problem because the loader is still waiting for mem_ptr to move on
+\\accordngly, this mustn't trigger a lapped error
+
+	LDA #00000001;				test bit 0 (was mem_ptr in head_page?)
+	BIT flags;					
+	BEQ check_if_in_load_page;	branch if zero (i.e. mem_ptr has not just left head_page)
+	LDA flags
+	AND	#%11111110;				clear bit 0 as mem_ptr is now no longer in head_page
+	STA flags
+	JMP done_irq
+
+.check_if_in_load_page
+	LDA mem_ptr+1
+	CMP load_page
+	BNE player;					if we haven't reached load page we are safe to go around again
+\\need to check if we have reached EOF
+\\because, if we have, we don't need to worry about loading
+	BIT flags;					bit 6 (EOF) is now in V
+	BVS player;					branch if V=1 (i.e. we have reached EOF)
+
+	LDA flags
+	ORA #%00000100;				set bit 2 to confirm that we have lapped the loader
+	STA flags
+	JMP done_irq;				load_page represents a location where there is going to be, but has not yet been a load
+							;	therefore, there is no point in going round the player again, 
+							;	because what there is to play is not relevant
+}	
+\\====================================================================================
+\\The remainder of this routine deals with setting up a new delay (if there is one)
+\\The delay values in the DRO file are measured in milliseconds
+\\But the timer in the YM3812 has a resolution of 80 microseconds and cannot precisely measure 1ms
+\\Accordingly, we divide the values by 2 and work with 2ms
+
+\\First we deal with a short delay
+\\The length of this delay is (n+1)ms
+.short_delay
+{
+	INY;							Y now points to the delay byte
+	CLC
+	LDA #1;							always have to add 1 to the delay
+	BIT flags;						check bit 7 for remainder from last time
+	BPL no_carry;					bit 7 is in N, so branch if N=0
+	LDA flags
+	AND #%01111111;					clear bit 7
+	STA flags
+	LDA #2;							add an extra 1 for the last remainder
+.no_carry
+	ADC (mem_ptr), Y
+	STA delay
+	BCC halve_delay
+	LDA #1
+	STA delay+1
+\\halve delay because of fewer interrupts
+.halve_delay
+	LSR delay+1
+	ROR delay
+	BCC increment_mem_ptr_new_delay
+	LDA flags
+	ORA #%10000000; 					set bit 7 to show that there was a remainder
+	STA flags
+	JMP increment_mem_ptr_new_delay
+}
+
+\\For a long delay, the length is ((n+1)*256)ms
+	.long_delay
+	LDA #0
+	STA delay
+	INY;								Y now points to the delay byte
+	LDA (mem_ptr), Y
+	STA delay+1
+	INC delay+1
+\\halve delay because of fewer interrupts
+\\this is fully accurate because any remainder from MSB is shifted into LSB
+	LSR delay+1
+	ROR delay
+\\there is no point in dealing with remainders either on entry or exit
+\\the value is always even, so there will be no remainder on division
+\\adding in a previous remainder will result in a number which is odd
+\\so the previous remainder will just be carried over to the next delay	
+
+\\Finally, just like with the main player routine, we need to increment mem_ptr
+\\We could save code space by doing this as a subroutine
+\\But repeating it, could save execution time
+.increment_mem_ptr_new_delay
+{
+	INC mem_ptr
+	INC mem_ptr
+	BNE new_delay_done_irq;			if that didn't result in zero we haven't crossed a page boundary
+								;	what if mem_ptr started on an odd number? in practice it never has
+								; 	NEED TO DEAL WITH THE POSSIBILITY OF ODD NUMBERS (I have set up an error routine for this for the time being)
+	INC mem_ptr+1
+
+\\check if we have reached top_page and have to go back to the bottom of the circular buffer	
+	LDA mem_ptr+1
+	CMP top_page;				if mem_ptr has reached top_page, we need to go back to the beginning of the circular buffer
+	BNE not_at_top_page
+	LDA #HI(buff_page)
+	STA mem_ptr+1
+.not_at_top_page
+	
+\\as mem_ptr has now crossed a page boundary, need to check if player has lapped loader
+
+\\first, has mem_ptr just moved on from head_page?
+\\if so, mem_ptr=load_page
+\\but this isn't a problem because the loader is still waiting for mem_ptr to move on
+\\accordngly, this mustn't be allowed to trigger a lapped error
+
+	LDA #00000001;				test bit 0 (was mem_ptr in head_page?)
+	BIT flags;					
+	BEQ check_if_in_load_page;	branch if zero (i.e. mem_ptr has not just left head_page)
+	LDA flags
+	AND	#%11111110;				clear bit 0
+	STA flags
+	JMP done_irq
+
+.check_if_in_load_page
+	LDA mem_ptr+1
+	CMP load_page;				load_page represents a location where there is going to be, but has not yet been a load
+	BNE new_delay_done_irq
+
+\\need to check if we have reached EOF
+\\because, if we have, we don't need to worry about loading
+.check_eof
+	BIT flags;					bit 6 (EOF) is now in V
+	BVS new_delay_done_irq;		branch if V=1 (i.e. we have reached EOF)
+
+	LDA flags
+	ORA #%00000100;				set bit 2 to confirm that we have lapped the loader
+	STA flags
+
+.new_delay_done_irq
+	PLA:TAY:PLA:TAX:PLA:STA &FC
+	JMP (irq1v_old)
+
+}
