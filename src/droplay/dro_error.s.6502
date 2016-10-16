@@ -17,7 +17,6 @@
 	STA irq1v
 	LDA irq1v_old+1
 	STA irq1v+1
-\\re-enable interrupts
 	CLI
 
 \\re-enable ADC sampling
@@ -25,6 +24,7 @@
 	LDX old_ADC
 	JSR osbyte
 
+\\this is only used in the Juke Box variant
 \ \ \\restore character event status
 	\ \ LDA #%00000100;				check if bit 2 set
 	\ \ BIT old_event_status
@@ -34,7 +34,9 @@
 	\ \ LDY #0;						because AUG says this is required
 	\ \ JSR osbyte
 \ \ .leave_char_event_set
-	
+
+\\this is used in the Juke Box variant
+\\in DROPLAY it is used for the debugging data at the bottom of the screen	
 \\restore vsync event status
 	LDA #%00010000;				check if bit 4 set
 	BIT old_event_status
@@ -45,6 +47,7 @@
 	JSR osbyte
 .leave_vsync_event_set
 
+\\this is only used in the Juke Box variant
 \ \ \\restore timer zero event status
 	\ \ LDA #%00100000;				check if bit 5 set
 	\ \ BIT old_event_status
@@ -71,13 +74,12 @@
 	LDA evntv_old+1
 	STA evntv+1
 
-\\NEED TO FIND A WAY TO PREVENT CHANNEL ERROR IF NO FILE OPENED
 \\close file
-	LDA #0;					CLOSE
-	\ LDY control_file_handle
+	LDA #0;						CLOSE
 	LDY #0;						close all files
 	JSR osfind
 	
+\\this is only used in the Juke Box variant
 \ \\clean-up bottom row
 \ {
 	\ LDA #0
@@ -92,7 +94,6 @@
 	JSR flush
 
 \\generate error
-NOP
 	JMP (error_block)
 }	
 .error_block

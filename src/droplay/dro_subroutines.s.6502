@@ -2,6 +2,8 @@
 \\THEY DO NOT RELY ON OSASCI OR OSWRCH
 \\INSTEAD THEY POKE VALUES DIRECTLY TO THE BOTTOM ROW AREA OF AN UN-SCROLLED MODE 7 SCREEN
 
+\\print_hex is also used by DROPLAY for the debugging data at the bottom of the screen
+
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \ .print_dec
 \ {
@@ -86,7 +88,7 @@
 									;	As you can't *SPOOL text to ROMFS as it is a read-only filing system printing 
 									;	text won't result in a ROMFS filing system call that uses &F6/&F7.
 	
-	LDY #1;								use Y to count how long the text and to identify where to return to
+	LDY #1;								use Y to count how long the text is and to identify where to return to
 .loop
 	LDA (&F6),Y;						this will load a character from after the JSR print_text call
 	BEQ end;							if it is zero, we have reached the end of the text
@@ -107,15 +109,15 @@
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 \\ This is intended to flush out all the YM3812 buffers and put it in a neutral state
-\\ There is a lack of clear information on how to do this
-\\ Need to look at the datasheet a bit and see if we can make this more logicak
-\\ YM3812 flush
+\\ It doesn't always work as expected - sometimes there are some weird sounds if another tune had been playing previously
+\\ Need to look at the Ad Lib driver to see how they do it
 .flush
 {	LDX #0
 	LDA #0
 .loop
-\\seriously doubt if the NOPs are needed
-	NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP; need a delay of at least 47 cycles before writing to YMADDR
+\\these NOPs are needed; without them, flush does not work
+\\they do exactly the same in the Ad Lib driver
+	NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP:NOP; need a delay of at least 47 cycles before writing to YMADDR
 	STX ymaddr
 	NOP:NOP:NOP:NOP; need a delay of at least 7 cycles before writing to YMDATA
 	STA ymdata

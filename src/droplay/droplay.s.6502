@@ -1,49 +1,59 @@
+\\***********OUTSTANDING ISSUES************************
+\\           ==================
+\\ - losing a few bytes at the end of the tune - not consistent varies between 0 and 6
+\\
+\\ - flush isn't 100% reliable - sometimes, slightly weird sounds in a new song - cleared by doing a hard break
+\\	 need to code this based on the code in the Ad Lib SDTK
+
+
 beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
-repeated_long_division=FALSE;			Set to true if long division is used in a loop
-									;	to allow it to use &A8 to &AF as it's workspace for greater speed
 
 ORG &1A00;								Assemble at &100 above PAGE to avoid 'Bad Program' errors
-									;	Should we go a lot higher instead
 
 INCLUDE "lib\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
- 
-\\ NEED TO CHOOSE ZERO PAGE VARIABLES WITH CARE
-\\ MAKE BEST USE OF THEM TO MAXIMIZE EFFICIENCY
  
 \\zero page variables
 irq1v_old=&70;			(&70 and &71)
 irq2v_old=&70;			(&70 and &71);					We don't need to intercept both IRQ vectors, it is always one or the other
 mem_ptr=&72;			(&72 and &73);					Location in memory currently being played
 delay=&74;				(&74 and &75);					Outstanding duration of current delay (if not zero)
-load_page=&76
+load_page=&76;											Page where the next load will occur
 top_page=&77;											This is the page above the top of the circular buffer (i.e. the buffer doesn't extend into top_page)
-flags=&78;												Bit 0 - set if EOF reached
+flags=&78;												Bit 0 - set if mem_ptr is in head_page
 													;	Bit 1 - set if end of tune reached
 													;	Bit 2 - set if player has lapped loader
 													;	Bit 3 - set if escape key has been pressed
 													;	Bit 4 - set if f9 key has been pressed
-													;	Bit 5 - set if on screen timer is ready
-													;	Bit 6 - set if mem_ptr is in head_page
-													;	Bit 7 - set if
-
+													;	Bit 5 - set if on screen timer is ready			(only used by Juke Box variant)
+													;	Bit 6 - set if EOF reached
+													;	Bit 7 - set if there was a remainder from the last divide by two
 evntv_old=&79;			(&79 and &7A)
-filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to the commmand
+filename_address=&7B;	(&7B, &7C, &7D, &7E)			Pointer to the <fsp> parsed to the commmand
+													;	Frustratingly, osargs, requires this block to be in zp
+\ final_bytes=&7F;									; 	the number of bytes in the final page of the tune													
+\\final_bytes isn't working at the moment
 
-\\MUST SET UP EVERYTHING THAT ERROR RESETS BEFORE THERE IS AN ERROR
-\\OTHERWISE ERROR WILL GO MENTAL
+\ \\can we put control_block in zp? there is space but, bizzarely, it seems to make it run slower! (and also breaks print_text)
+\ \\it's pretty pointless to do this because osgbpb is expecting it in regular memory and will be compiled to use absolute (and not zp) adressing
+\ \\need to zero out in code and put HI(head_page) in control_load_page
+\ control_block=&7F
+\ control_file_handle=&7F;								same as control_block
+\ control_mem_addr=&80;	(&80, &81, &82, &83)
+\ tune_end=&80;											same as control_mem_addr (when we reach EOF, the byte after the final address will be stored here)
+\ control_load_page=&81;								located inside control_mem_addr
+\ control_bytes_to_read=&84;	(&84, &85, &86, &87)
+\ control_pages_to_read=&85;							located inside control_bytes_to_read
+
+\\MUST SET UP EVERYTHING THAT ERROR RESETS BEFORE THERE IS AN ERROR OTHERWISE ERROR WILL GO MENTAL
 
 .start
 	PHP:PHA:TXA:PHA:TYA:PHA;		preserve all the registers on the stack
 	
 \\ put zero in variables
-\\ THINK WHETHER ALL OF THESE REALLY NEED TO BE ZEROED
 	LDA #0
-	\ STA mem_ptr;					this isn't necessary because it is specifically iniitalized before being of relevance
-	\ STA mem_ptr+1;					this isn't necessary because it is specifically iniitalized before being of relevance
-	STA delay;						this is absolutely essential, otherwise player will have problems
-	STA delay+1;					this is absolutely essential, otherwise player will have problems
-	\ STA load_page;					this isn't necessary because it is specifically iniitalized before being of relevance
+	STA delay
+	STA delay+1
 	STA flags
 
 \\get value for top_page
@@ -90,6 +100,7 @@ filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to t
 	STA old_event_status
 .escape_not_set
 
+\\this is used in the corresponding part of Juke Box
 \ \\enable character buffer events
 	\ LDA #&0E;			enable event
 	\ LDX #2;			character buffer event
@@ -101,6 +112,8 @@ filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to t
 	\ STA old_event_status
 \ .character_not_set
 
+\\this is currently used in the corresponding part of Juke Box
+\\but will probably change the playback timer to use vsync for timing
 \ \\enable timer zero events
 	\ LDA #&0E;			enable event
 	\ LDX #5;				timer event
@@ -112,6 +125,8 @@ filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to t
 	\ STA old_event_status
 \ .timer_zero_not_set
 
+\\this is used in the corresponding part of Juke Box
+\\it is used here for the debugging data at the bottom of the screen
 \\enable vsync events
 	LDA #&0E;			enable event
 	LDX #4;				vsync event
@@ -152,9 +167,8 @@ filename_address=&7B;	(&7B, &7C, &7D and &7E)			Pointer to the <fsp> parsed to t
 .not_null
 
 \\ test for presence of BeebOPL card
-\\ but not if we are running in BeebEm because then the test will always fail
-IF beebem=FALSE
 \\ THERE HAS GOT TO BE MORE EFFICIENT CODE THAN THIS
+\\ This is EXACTLY how the Ad Lib Sound Driver does it
 \\ we don't need to use zp for this as we only do it once
 \\ but it does no harm because these locations are only used by long division 
 \\ and we haven't called it yet
@@ -167,10 +181,10 @@ IF beebem=FALSE
 											;	the unused bits are undefined.
 	LDA #&02: STA ymaddr: LDA #&FF: STA ymdata;	Set timer 1 to &FF.
 	LDA #&04: STA ymaddr: LDA #&21: STA ymdata;	Unmask and start timer 1.
-	LDX #48;									Each loop lasts 5 cycles (2.5μsec); so 32=80μsec, 48=120μsec
+	LDX #40;									Each loop lasts 5 cycles (2.5μsec); so 32=80μsec, 40=100μsec, 48=120μsec
 .delay_loop
 	DEX
-	BNE delay_loop;								Wait in a delay loop for at least 80μsec.
+	BNE delay_loop;								Wait in a delay loop for at least 80μsec. (Ad Lib driver waits 100μsec)
 	LDA ymaddr: AND #&E0: STA scratch_b;		Read status register. Save the result. 
 											;	You should AND the result bytes with &E0 because
 											;	the unused bits are undefined.
@@ -181,15 +195,18 @@ IF beebem=FALSE
 	LDA scratch_a: BNE card_absent			;	the first should be 0, 
 	LDA scratch_b: CMP #&C0: BEQ card_present;	the second should be &C0.
 .card_absent
+IF beebem
+\\ don't generate error if running in BeebEm because the test will always fail
+ELSE
 	LDX #LO(no_card)
 	LDY #HI(no_card)
 	JMP error
+ENDIF
 .card_present
 }	
-ENDIF
 
 \\check for "-TEST" switch (if we have got this far, there must be a working card)
-\\?DEVELOP THIS TO ALLOW OTHER SWITCHE
+\\?DEVELOP THIS TO ALLOW OTHER SWITCHES
 {
 	LDY #0
 	LDA (filename_address), Y;				get the first character
@@ -234,9 +251,10 @@ ENDIF
 .file_found
 }
 
-\\test for escape before commencing any potentially long disk read
-{	LDA flags
-	AND #%00001000; 			test bit 3 for escape
+\\test for escape before commencing potentially long disk read
+{
+	LDA #%00001000; 			test bit 3 for escape
+	BIT flags
 	BEQ no_escape
 	LDX #LO(escape)
 	LDY #HI(escape)
@@ -244,9 +262,11 @@ ENDIF
 .no_escape
 }	
 
-\ \\test for f9 key press before commencing long disk read
-\ {	LDA flags
-	\ AND #%00010000; 			test bit 4 for f9 key press
+\\this is used in the corresponding part of Juke Box
+\ \\test for f9 key press before commencing potentially long disk read
+\ {	
+	\ LDA #%00010000; 			test bit 4 for f9 key press
+	\ BIT flags
 	\ BEQ no_f9
 	\ LDX #LO(f9_key)
 	\ LDY #HI(f9_key)
@@ -288,7 +308,7 @@ ENDIF
 	JSR osfile
 \\iindicate that we have got to the end of the file
 	LDA flags
-	ORA #%00000001;			set bit 0 (EOF reached)
+	ORA #%01000000;			set bit 6 (EOF reached)
 	STA flags
 
 \\and keep a record of where the file ends
@@ -306,17 +326,18 @@ ENDIF
 	LDY filename_address+1
 	JSR osfind
 	BNE file_opened
-\\A returns with zero if the file could not be opened
+\\A returns with zero if the file could not be opened...
 \\report error
 	LDX #LO(error_opening)
 	LDY #HI(error_opening)
 	JMP error
 
 .file_opened
-\\otherwise, A contains the file handle
+\\...otherwise, A contains the file handle
 	STA control_file_handle;				place the handle in the control block ready for reading from file
-	LDA #HI(head_page)
-	STA control_load_page;					place the load address in the control block ready for reading from file
+\\control_pages_to_read was set up earlier when we got the value of top_page
+\\control_load_page for the first load is fixed at head_page and this is already in control_block
+\\so nothing else to initialise
 
 \\Warn the user we are in for a bit of a wait
 	JSR print_text
@@ -326,16 +347,8 @@ ENDIF
 	LDA #4;						read block using PTR#
 	LDX #LO(control_block)
 	LDY #HI(control_block)
-	\ CLC
 	JSR osgbpb
-	\ BCC finished_loading;		carry flag is set on exit if attempted to read beyond EOF
-\\this should be redundant. We can't get to EOF if we are only loading part of  file
-\ \\handle EOF
-	\ LDA flags
-	\ ORA #%00000001;				set bit 0 (EOF reached)
-	\ STA flags
 
-\ .finished_loading
 \\tell user we are done
 	JSR print_text
 	EQUS "Done!", 13, 0
@@ -363,6 +376,7 @@ ENDIF
 {
 	LDA version_major
 	CMP #2
+\\all the other bytes should be zero in a genuine 2.0 file
 	BNE version_check_fail
 	LDA version_major+1
 	BNE version_check_fail
@@ -381,7 +395,7 @@ ENDIF
 \\check for hardware type
 {
 	LDA hardware_type
-	BEQ OPL2
+	BEQ OPL2;							hardware_type=0 for OPL2 files
 	LDX #LO(wrong_hardware)
 	LDY #HI(wrong_hardware)
 	JMP error
@@ -391,7 +405,7 @@ ENDIF
 \\check for compression
 {
 	LDA compression
-	BEQ not_compressed
+	BEQ not_compressed;					0 for uncompressed files (there are no other values, but we might use it at a later date for pucrunch or exomiser)
 	LDX #LO(compressed)
 	LDY #HI(compressed)
 	JMP error
@@ -399,17 +413,38 @@ ENDIF
 }
 
 \\check for an odd number of bytes in the command table
+\\player assumes that each register pair starts at an even numbered address (because it is easier to code it that way)
+\\this will be the case if there are an even number of bytes in the command table
+\\so far, this has proven to be the case for all files
+\\if there were an odd number, DROPLAY would crash
+\\this error is really intended to identify whether there are such files, in the field
 {
-	LDA #%00000001;						odd binary numbers always and with a 1
+	LDA #%00000001;						odd binary numbers always have a LSB of 1
 	BIT .cmd_table_size
-	BEQ even_number;					the result will be zero if the number is zero
+	BEQ even_number;					the result will be zero if the number is even
 	LDX #LO(odd_number)
 	LDY #HI(odd_number)
 	JMP error
 .even_number
 }
 	
-\\initialize mem_ptr
+\\this calculation doesn't seem to work
+\ \\calculate the number of bytes in the final page
+\ \\start with the LSB of length_pairs
+	\ LDA length_pairs
+\ \\multiply by two to get number of bytes
+	\ ASL A
+\ \\the register pairs do not start at a page boundary
+\ \\they are offset by the length of the header
+	\ CLC
+	\ ADC #HI(cmd_table)
+\ \\and by the size of the command table
+	\ CLC
+	\ ADC cmd_table_size
+\ \\finally store the result
+	\ STA final_bytes
+	
+\\initialise mem_ptr
 	CLC
 	LDA #LO(cmd_table)
 	ADC cmd_table_size
@@ -418,8 +453,12 @@ ENDIF
 	ADC #0
 	STA mem_ptr+1
 	LDA flags
-	ORA #%01000000;						set bit 6 to show that mem_ptr is in head_page
+	ORA #%00000001;						set bit 0 to show that mem_ptr is in head_page
 	STA flags
+
+\\==============================================================================
+\\This whole section is concerned with setting up the timer in Juke Box
+\\Will need a degree of modification to use vsync instead of the interval timer
 
 \ \\setup on screen timer
 \ \\place the colons
@@ -489,8 +528,10 @@ ENDIF
 	\ LDA flags
 	\ ORA #%00100000;			set bit 5 (on screen timer ready)
 	\ STA flags
+
+\\==============================================================================
 	
-\\setup timer (YM3812)
+\\setup YM3812 timer
 	LDA #&04;					
 	STA ymaddr
 	LDA #&60;
@@ -499,126 +540,19 @@ ENDIF
 	STA ymdata
 	LDA #&02;
 	STA ymaddr
-	LDA #244;				timer 1 has a resolution of 80 microseconds and counts up. So 244 = 256-244 = 12*80 = 960ms
+	LDA #231;				timer 1 has a resolution of 80 microseconds and counts up. So 231 = 256-231 = 25*80 = 2ms
 	STA ymdata
 	LDA #&04
 	STA ymaddr
 	LDA #&21;				turn on timer 1 (and mask timer 2)
 	STA ymdata
 
+\\the loader is the most critcial part of the app
+\\it has significant performance issues
+\\(albeit ones which are probably not amenable to remedy)
+\\easier to deal with it in a separate file
+
 INCLUDE "src\droplay\loader.s.6502"
-
-\\==========================================================================
-\\REPLACE ALL BELOW WITH 'loader.s.6502' BECAUSE IT IS CRAP
-
-\ .head_page_loop;				WHY DO WE EVEN NEED THIS?
-\ \\test for escape
-\ {	LDA flags
-	\ AND #%00001000; 			test bit 3 for escape
-	\ BEQ no_escape
-	\ LDX #LO(escape)
-	\ LDY #HI(escape)
-	\ JMP error
-\ .no_escape
-\ }
-\ \ \\test for f9 key press
-\ \ {	LDA flags
-	\ \ AND #%00010000; 			test bit 4 for character event
-	\ \ BEQ no_key
-	\ \ LDX #LO(f9_key)
-	\ \ LDY #HI(f9_key)
-	\ \ JMP error
-\ \ .no_key
-\ \ }
-\ \\if end of tune need to go to end
-	\ LDA flags
-	\ AND #%00000010; 			test bit 1 for end of tune - NO USE NEW TEST FOR END OF TUNE
-	\ BNE end_game
-\ \\if end of file need to bypass loop - IS THIS NECESSARY? - IF EOF ALREADY, WE ARE NEVER GOING TO GET PAST HEAD PAGE - YES IF FILE IS CORRUPT AND TOO SHORT
-\ \\THIS NEXT BIT IS DEFINITELY NOT NECESSARY AS THERE WAS A BUG (missing LDA flags) AND IT STILL WORKED
-	\ LDA flags;					THIS WAS MISSING AND I ADDED IT IN
-	\ AND #%00000001; 			test bit 0 for EOF
-	\ BNE head_page_loop;			This branch is all wrong. This says if we HAVE reached EOF, go round head page loop again.
-	
-	\ LDA #HI(head_page)
-	\ CMP mem_ptr+1
-	\ BEQ head_page_loop
-	
-\ \\set load_page to beginning of buffer
-	\ LDA #HI(buff_page)
-	\ STA load_page
-	\ STA control_load_page
-	
-\ .main_loop
-\ \\test for escape
-\ {	LDA flags
-	\ AND #%00001000; 			test bit 3 for escape
-	\ BEQ no_escape
-	\ LDX #LO(escape)
-	\ LDY #HI(escape)
-	\ JMP error
-\ .no_escape
-\ }
-\ \ \\test for f9 key press
-\ \ {	LDA flags
-	\ \ AND #%00010000; 			test bit 4 for character event
-	\ \ BEQ no_key
-	\ \ LDX #LO(f9_key)
-	\ \ LDY #HI(f9_key)
-	\ \ JMP error
-\ \ .no_key
-\ \ }
-\ \\test to see if player has lapped loader
-	\ LDA flags
-	\ AND #%00000100; 			test bit 2 for lapped
-	\ BEQ not_lapped
-	\ LDX #LO(buffer_fail)
-	\ LDY #HI(buffer_fail)
-	\ JMP error
-\ .not_lapped
-
-\ \\if end of tune need to go to end
-	\ LDA flags
-	\ AND #%00000010; 			test bit 1 for end of tune - NO USE NEW TEST FOR END OF TUNE
-	\ BNE end_game
-\ \\if end of file need to bypass loop - IS THIS NECESSARY? - IF EOF ALREADY, WE ARE NEVER GOING TO GET PAST HEAD PAGE - YES IF FILE IS CORRUPT AND TOO SHORT
-	\ LDA flags
-	\ AND #%00000001; 			test bit 0 for EOF
-	\ BNE main_loop
-	\ LDA load_page
-	\ CMP mem_ptr+1
-	\ BEQ main_loop
-	
-\ \\get next page
-	\ LDA #1;					set control_pages_to_read to 1
-	\ STA control_pages_to_read
-	\ LDA load_page
-	\ STA control_load_page
-	\ LDA #4;					read block using PTR#
-	\ LDX #LO(control_block)
-	\ LDY #HI(control_block)
-	\ \\the other values are already pre-programmed in the control block
-	\ CLC
-	\ JSR osgbpb
-	\ BCC inc_load_page;		carry flag is set on exit if attempted to read beyond EOF
-\ \\handle EOF
-	\ LDA flags
-	\ ORA #%00000001;			set bit 0
-	\ STA flags
-	
-\ .inc_load_page
-	\ INC load_page
-	
-\ \\check if we have gone beyond the buffer	
-	\ LDA load_page
-	\ CMP top_page
-	\ BNE main_loop
-	\ LDA #HI(buff_page)
-	\ STA load_page
-	\ JMP main_loop
-
-\\REPLACE ALL ABOVE WITH 'loader.s.6502' BECAUSE IT IS CRAP
-\\==========================================================================
 	
 .end_game
 {\\turn off YM3812 timer
@@ -633,7 +567,6 @@ INCLUDE "src\droplay\loader.s.6502"
 	STA irq1v
 	LDA irq1v_old+1
 	STA irq1v+1
-\\re-enable interrupts
 	CLI
 
 \\re-enable ADC sampling
@@ -641,6 +574,7 @@ INCLUDE "src\droplay\loader.s.6502"
 	LDX old_ADC
 	JSR osbyte
 
+\\this is used in the corresponding part of Juke Box
 \ \ \\restore character event status
 	\ \ LDA #%00000100;				check if bit 2 set
 	\ \ BIT old_event_status
@@ -651,6 +585,7 @@ INCLUDE "src\droplay\loader.s.6502"
 	\ \ JSR osbyte
 \ \ .leave_char_event_set
 	
+\\this is only necessary when displaying the debugging data at the bottom of the screen
 \\restore vsync event status
 	LDA #%00010000;				check if bit 4 set
 	BIT old_event_status
@@ -661,6 +596,7 @@ INCLUDE "src\droplay\loader.s.6502"
 	JSR osbyte
 .leave_vsync_event_set
 
+\\this is used in the corresponding part of Juke Box
 \ \ \\restore timer zero event status
 	\ \ LDA #%00100000;				check if bit 5 set
 	\ \ BIT old_event_status
@@ -687,13 +623,12 @@ INCLUDE "src\droplay\loader.s.6502"
 	LDA evntv_old+1
 	STA evntv+1
 
-\\NEED TO FIND A WAY TO PREVENT CHANNEL ERROR IF NO FILE OPENED
 \\close file
 	LDA #0;					CLOSE
-	\ LDY control_file_handle
-	LDY #0;						close all files
+	LDY #0;					close all files
 	JSR osfind
 	
+\\this is used in the corresponding part of Juke Box
 \ \\clean-up bottom row
 \ {
 	\ LDA #0
@@ -714,7 +649,7 @@ INCLUDE "src\droplay\loader.s.6502"
 }	
 
 \\INCLUDES FOR ALL THE SUBROUTNES	
-INCLUDE "src\droplay\play.s.6502"
+INCLUDE "src\droplay\player.s.6502"
 INCLUDE "src\droplay\dro_event.s.6502"
 INCLUDE "src\droplay\dro_error.s.6502"
 INCLUDE "src\droplay\dro_subroutines.s.6502";			THIS WILL INCLUDE THE CODE FOR ~ALL~ THE SUBROUTINES, NOT JUST THE ONES WE USE
@@ -726,6 +661,11 @@ INCLUDE "src\droplay\dro_subroutines.s.6502";			THIS WILL INCLUDE THE CODE FOR ~
 	EQUS "DBRAWOPL"
 	
 \\dummy control block for osgbpb
+\\it takes 9 bytes of code to zero out control_bytes_to_read (excluding control_pages_to_read, which we have to set in code)
+\\it takes a further 12 bytes of code to set the initial value for control_mem_addr 
+\\(i.e. a total of 21 bytes)
+\\control_block is only 13 bytes long, so it is easier to include it in the code, prefilled
+\\also, the content of control_ptr doesn't matter, so we can leave that outside the code
 .control_block
 .control_file_handle; 	1 byte
 	EQUB &00
@@ -733,43 +673,24 @@ INCLUDE "src\droplay\dro_subroutines.s.6502";			THIS WILL INCLUDE THE CODE FOR ~
 .tune_end;							when we reach EOF, the byte after the final address will be stored here
 	EQUB &00
 .control_load_page
-	EQUB &00
+	EQUB HI(head_page)
 	EQUW &0000
 .control_bytes_to_read; 4 bytes
 	EQUB &00
 .control_pages_to_read
 	EQUB &00
 	EQUW &0000
-.control_ptr
-	EQUD &00000000;		4 bytes
-	
+
+\\end the program here, becasue we have filled all of the necessary parts of control_block
 .end
 
-\\variables
-.column
-	EQUB &00
-\ .minutes
-	\ EQUB &00
-\ .seconds
-	\ EQUB &00
-\ .hundredths
-	\ EQUB &00
-\ .duration
-	\ EQUD &00000000
-	\ EQUB &00
-.old_ADC
-	EQUB &00
-.old_event_status
-	EQUB &00;											Bit 0 - set if 
-													;	Bit 1 - set if 
-													;	Bit 2 - set if character event was enabled before entry
-													;	Bit 3 - set if
-													;	Bit 4 - set if vsync event was enabled before entry
-													;	Bit 5 - set if timer zero event was enabled before entry
-													;	Bit 6 - set if escape event was enabled before entry
-													;	Bit 7 - set if
+\\continue asigning space for the remainder of control_block
+.control_ptr
+	EQUD &00000000;		4 bytes
 
 \\dummy parameter block for osfile
+\\only osfile_filename_address (which we set at runtime) is relevant for osfile &05
+\\so this block does not need to be zeroed out
 .osfile_block
 .osfile_filename_address
 	EQUW &0000
@@ -782,6 +703,35 @@ INCLUDE "src\droplay\dro_subroutines.s.6502";			THIS WILL INCLUDE THE CODE FOR ~
 	EQUD &00000000
 .osfile_lock_status
 	EQUB &00
+
+\\variables
+
+\\this is used in the corresponding part of Juke Box
+\ .minutes
+	\ EQUB &00
+\ .seconds
+	\ EQUB &00
+\ .hundredths
+	\ EQUB &00
+\ .duration
+	\ EQUD &00000000
+	\ EQUB &00
+
+\\this is only used for the debugging display at the bottom of the screen
+.column
+	EQUB &00
+
+.old_ADC
+	EQUB &00
+.old_event_status
+	EQUB &00;											Bit 0 - set if 
+													;	Bit 1 - set if 
+													;	Bit 2 - set if character event was enabled before entry
+													;	Bit 3 - set if
+													;	Bit 4 - set if vsync event was enabled before entry
+													;	Bit 5 - set if timer zero event was enabled before entry
+													;	Bit 6 - set if escape event was enabled before entry
+													;	Bit 7 - set if
 
 ALIGN &100
 .head_page;							This page contains the standard DRO header, plus the first few bytes of the music
@@ -815,7 +765,7 @@ ALIGN &100
 
 PUTFILE "music\BRAZIL", "BRAZIL", 0
 PUTFILE "music\FAIRY", "FAIRY", 0
-PUTFILE "music\MONEY", "MONEY", 0
+PUTFILE "music\SWARS", "SWARS", 0
 PUTFILE "music\WTELL", "WTELL", 0
 
 

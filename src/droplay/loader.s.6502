@@ -17,16 +17,14 @@
 	CMP #HI(head_page)
 	BEQ done_loading
 
-\\if mem_ptr is in load_page, we have to wait for it to move on before we can load
+\\next, if mem_ptr is in load_page, we have to wait for it to move on before we can load
 \\otherwise, we will overwrite the data that mem_ptr is still reading
-	\\assuming that A has not been corrupted from LDA mem_ptr+1 abvove
 	CMP load_page
 	BEQ done_loading
 	
 \\if we have reached EOF, there is nothing to load
-	LDA flags
-	AND #%00000001; 			test bit 0 for EOF
-	BNE done_loading;			when check bits with AND, BNE is what we do if the bit ~IS~ set
+	BIT flags;					bit 6 (EOF) is now in V
+	BVS done_loading;			branch if V=1
 
 \\LOAD THE NEXT PAGE OF DATA
 \\==========================
@@ -44,10 +42,11 @@
 	BCC inc_load_page;		carry flag is set on exit if attempted to read beyond EOF
 \\handle EOF
 	LDA flags
-	ORA #%00000001;			set bit 0 (for EOF)
+	ORA #%01000000;			set bit 6 (for EOF)
 	STA flags
-	\\we should have returned from osgbpb with the correct address loaded in tune_end
-	
+\\we should have returned from osgbpb with the correct address loaded in tune_end
+\\(osgbpb updates control_mem_addr to the next available location for loading)
+\\(tune_end is defined is the same location as control_mem_addr)
 	JMP done_loading;		no point in wasting time incrementing load_page
 
 \\INCREMENT load_page READY FOR THE NEXT READ
@@ -67,9 +66,10 @@
 \\CHECKS TO SEE IF WE CAN EXIT THE PROGRAM
 \\=========================================
 \\check to see if escape has been pressed
-{	LDA flags
-	AND #%00001000; 			test bit 3 for escape
-	BEQ no_escape
+{
+	LDA #%00001000; 			test bit 3 for escape
+	BIT flags
+	BEQ no_escape;				branch if zero (i.e. the escape flag is not set)
 	LDX #LO(escape)
 	LDY #HI(escape)
 	JMP error
@@ -86,26 +86,7 @@
 .not_lapped
 }
 \\check to see if we have reached the end of the tune
-{
 	LDA #%00000010;					test bit 1 (end of tune)
 	BIT flags
 	BEQ loader;						branch (i.e. go back round again) if result is zero (i.e. not end of tune)
-	
-\ \\if we have reached EOF, have we also reached end of tune?
-	\ LDA mem_ptr;					check LSB of mem_ptr
-	\ CMP tune_end;					against LSB of tune_end
-	\ BNE not_end_of_tune
-	\ LDA mem_ptr+1;					check MSB of mem_ptr
-	\ CMP tune_end+1;					against MSB of tune_end
-	\ BEQ end_game
-\ .not_end_of_tune
-}
-\ {	LDA flags
-	\ AND #%00000010; 			test bit 1 for end of tune
-	\ BEQ not_end_of_tune
-	\ JMP end_game
-\ .not_end_of_tune
-\ }
-\\AND BACK AROUND THE LOOP AGAIN
-\\==============================
-\\ fall through to end_game
+\\otherwise, fall through to end_game

@@ -114,22 +114,22 @@ bottom_row=&7FC0
 \\ &8D		reserved for user
 \\ &8E		reserved for user
 \\ &8F		reserved for user
-\\ &90		allocated to ECONET								appear to be unused	
-\\ &91		allocated to ECONET								appear to be unused	
-\\ &92		allocated to ECONET								appear to be unused	
-\\ &93		allocated to ECONET								appear to be unused	
-\\ &94		allocated to ECONET								appear to be unused	
-\\ &95		allocated to ECONET								appear to be unused	
-\\ &96		allocated to ECONET								appear to be unused
+\\ &90		allocated to ECONET								appears to be unused	
+\\ &91		allocated to ECONET								appears to be unused	
+\\ &92		allocated to ECONET								appears to be unused	
+\\ &93		allocated to ECONET								appears to be unused	
+\\ &94		allocated to ECONET								appears to be unused	
+\\ &95		allocated to ECONET								appears to be unused	
+\\ &96		allocated to ECONET								appears to be unused
 
-\\ &A8		allocated to OS commands during execution		transient command space			used by long division
-\\ &A9		allocated to OS commands during execution		transient command space			used by long division
-\\ &AA		allocated to OS commands during execution		transient command space			used by long division
-\\ &AB		allocated to OS commands during execution		transient command space			used by long division
-\\ &AC		allocated to OS commands during execution		transient command space			used by long division
-\\ &AD		allocated to OS commands during execution		transient command space			used by long division
-\\ &AE		allocated to OS commands during execution		transient command space			used by long division
-\\ &AF		allocated to OS commands during execution		transient command space			used by long division
+\\ &A8		allocated to OS commands during execution		transient command space			used by long division if set to use zp
+\\ &A9		allocated to OS commands during execution		transient command space			used by long division if set to use zp
+\\ &AA		allocated to OS commands during execution		transient command space			used by long division if set to use zp
+\\ &AB		allocated to OS commands during execution		transient command space			used by long division if set to use zp
+\\ &AC		allocated to OS commands during execution		transient command space			used by long division if set to use zp
+\\ &AD		allocated to OS commands during execution		transient command space			used by long division if set to use zp
+\\ &AE		allocated to OS commands during execution		transient command space			used by long division if set to use zp
+\\ &AF		allocated to OS commands during execution		transient command space			used by long division if set to use zp
 
 \\ &DA		temporary vdu workspace							temporary vdu workspace
 \\ &DB		temporary vdu workspace							temporary vdu workspace
