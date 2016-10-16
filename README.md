@@ -28,23 +28,22 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [x] ~~Check if the entire DRO file will fit in memory and, if so, load it with `OSFILE` rather than `OSGBPB` to speed up loading times.~~
 
-- [ ] Address continuing minor timing issues. DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond. 
+- [ ] Address continuing minor timing issues. ~~DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond.~~ 
 
-- [ ] check to see if player has overtaken buffer and issue error
+- [x] ~~Check to see if player has overtaken buffer and issue error~~
 
 - [x] ~~The registers are flushed too soon. Need to leave time for the last note to fade.~~
 
-- [ ] Generally tidy up code; in particular using curly braces and local variables.
+- [x] ~~Generally tidy up code; in particular using curly braces and local variables.~~
 
 - [x] ~~Juke Box inexplicably occasionally reports "BeebOPL card not found".~~
 
 - [ ] Add the Juke Box timer to Droplay as an option using a command line switch.
 
-- [ ] The 3.mm jack socket is about 1mm too far over to the left and therefore does not fit well. This needs to be corrected if another run of boards is done.
+- [ ] The 3.5mm jack socket is about 1mm too far over to the left and therefore does not fit well. This needs to be corrected if another run of boards is done.
 
 Further down the line, I would like to see if the use of [Exomiser] (http://hem.bredband.net/magli143/exo/) could be incorporated.
 
 I would also like to see if I could include **kieranhj**'s direct track loading routines using `OSWORD` (which he uses in his amazing [Mode 7 Video] (https://github.com/kieranhj/mode7-video) project). This may resolves the problems associated with `OSGBPB`.
 
 It would also be useful if there could be some kind of (software) master volume control.
-
