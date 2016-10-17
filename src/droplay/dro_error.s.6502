@@ -36,7 +36,8 @@
 \ \ .leave_char_event_set
 
 \\this is used in the Juke Box variant
-\\in DROPLAY it is used for the debugging data at the bottom of the screen	
+\\in DROPLAY it is used for the debugging data at the bottom of the screen
+IF debug_data	
 \\restore vsync event status
 	LDA #%00010000;				check if bit 4 set
 	BIT old_event_status
@@ -46,6 +47,7 @@
 	LDY #0;						because AUG says this is required
 	JSR osbyte
 .leave_vsync_event_set
+ENDIF
 
 \\this is only used in the Juke Box variant
 \ \ \\restore timer zero event status

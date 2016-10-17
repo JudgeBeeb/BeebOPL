@@ -11,6 +11,7 @@
 	\ STA flags
 \ .no_f9
 	
+IF debug_data
 \\************************************************************************************
 \\**VSYNC (4) HANDLER
 	CMP #4; is A set with the vsync event number?
@@ -136,6 +137,7 @@ JSR print_hex
 	\ LDA duration+0
 	\ JSR print_hex
 .no_vsync
+ENDIF
 
 \ \\************************************************************************************
 \ \\TIMER ZERO (5) EVENT HANDLER

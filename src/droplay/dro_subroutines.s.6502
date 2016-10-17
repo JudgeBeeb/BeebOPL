@@ -24,6 +24,7 @@
 \ \\Fall through into a standard print_hex routine 
 
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+IF debug_data
 .print_hex
 {
 \\see http://www.stardot.org.uk/forums/viewtopic.php?f=2&t=10511#p127307
@@ -62,7 +63,7 @@
 	STA scratch_a
 	RTS
 }
-	
+ENDIF	
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 \\Print inline text

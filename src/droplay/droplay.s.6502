@@ -8,6 +8,9 @@
 
 beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
+									
+debug_data=FALSE;						Set to true to display debugging data at the bottom of
+									;	a MODE 7 screen
 
 ORG &1A00;								Assemble at &100 above PAGE to avoid 'Bad Program' errors
 
@@ -128,6 +131,7 @@ filename_address=&7B;	(&7B, &7C, &7D, &7E)			Pointer to the <fsp> parsed to the 
 \\this is used in the corresponding part of Juke Box
 \\it is used here for the debugging data at the bottom of the screen
 \\enable vsync events
+IF debug_data
 	LDA #&0E;			enable event
 	LDX #4;				vsync event
 	JSR osbyte
@@ -137,6 +141,7 @@ filename_address=&7B;	(&7B, &7C, &7D, &7E)			Pointer to the <fsp> parsed to the 
 	ORA #%00010000;			set bit 4
 	STA old_event_status
 .vsync_not_set
+ENDIF
 
 \intercept interrupts
 	SEI;							disable interrupts
@@ -586,6 +591,8 @@ INCLUDE "src\droplay\loader.s.6502"
 \ \ .leave_char_event_set
 	
 \\this is only necessary when displaying the debugging data at the bottom of the screen
+\\it is also necessary in the corresponding part of Juke Box
+IF debug_data
 \\restore vsync event status
 	LDA #%00010000;				check if bit 4 set
 	BIT old_event_status
@@ -595,6 +602,7 @@ INCLUDE "src\droplay\loader.s.6502"
 	LDY #0;						because AUG says this is required
 	JSR osbyte
 .leave_vsync_event_set
+ENDIF
 
 \\this is used in the corresponding part of Juke Box
 \ \ \\restore timer zero event status
