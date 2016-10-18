@@ -27,3 +27,6 @@
 #ignore music files that have a corrupted ending
 /music/*.noend
 
+#ignore the /driver directory until there is somethng worthwhile in there
+/driver
+
