@@ -68,12 +68,6 @@
 .end
 	RTS
 }
-.bottom_of_divide
-
-\ \\ if this routine is being used in a loop use zp for workspace
-\ IF repeated_long_division
-	\ ORG &A8
-\ ENDIF
 
 .math_block
 .divisor
@@ -89,12 +83,6 @@
 .carry
 	EQUB &00
 
-\ \\ if we used zp above, need to go back to the next available assembly space	
-\ IF repeated_long_division
-	\ ORG bottom_of_divide
-\ ENDIF
-	
-	
 \\see http://psy.swansea.ac.uk/staff/Carter/projects/BBC_Millisec.htm	
 	
 \ .divide                  \performs 2 byte division  (byte/val)
