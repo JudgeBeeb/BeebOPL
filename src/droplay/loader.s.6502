@@ -75,6 +75,19 @@
 	JMP error
 .no_escape
 }
+
+\\this is used in the corresponding part of Juke Box
+\ \\check to see if f9 key has been pressed
+\ {	
+	\ LDA #%00010000; 			test bit 4 for f9 key press
+	\ BIT flags
+	\ BEQ no_f9
+	\ LDX #LO(f9_key)
+	\ LDY #HI(f9_key)
+	\ JMP error
+\ .no_f9
+\ }
+
 \\check to see if the player has lapped the loader
 {
 	LDA #%00000100; 			test bit 2 to see if player has lapped loader

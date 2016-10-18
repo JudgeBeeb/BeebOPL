@@ -9,7 +9,7 @@
 beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
 									
-debug_data=FALSE;						Set to true to display debugging data at the bottom of
+debug_data=TRUE;						Set to true to display debugging data at the bottom of
 									;	a MODE 7 screen
 
 ORG &1A00;								Assemble at &100 above PAGE to avoid 'Bad Program' errors
@@ -774,7 +774,7 @@ ALIGN &100
 PUTFILE "music\BRAZIL", "BRAZIL", 0
 PUTFILE "music\FAIRY", "FAIRY", 0
 PUTFILE "music\SWARS", "SWARS", 0
-PUTFILE "music\WTELL", "WTELL", 0
+PUTFILE "music\CAMPELL", "CAMPELL", 0
 
 
 SAVE "DROPLAY", start, end
