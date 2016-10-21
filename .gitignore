@@ -21,12 +21,12 @@
 #ignore the /reference directory because that is just for me...
 /reference
 
-#ignore the /src/droplay/old_version directory
-/src/droplay/old_version
-
 #ignore music files that have a corrupted ending
 /music/*.noend
 
 #ignore the /driver directory until there is somethng worthwhile in there
 /driver
+
+#ignore the /src/droplay/meter directory until there is somethng worthwhile in there
+/src/droplay/meter
 
