@@ -10,9 +10,7 @@
 
 beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
-
-debug_data=FALSE;						Set to true to display debug data at the bottom of the screen
-									
+							
 ORG &2500
 
 INCLUDE "lib\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
@@ -32,8 +30,16 @@ flags=&78;												Bit 0 - set if mem_ptr is in head_page
 													;	Bit 5 - set if on screen timer is ready			(only used by Juke Box variant)
 													;	Bit 6 - set if EOF reached
 													;	Bit 7 - set if there was a remainder from the last divide by two
-evntv_old=&79;			(&79 and &7A)
-filename_address=&7B;	(&7B, &7C, &7D, &7E)			Pointer to the <fsp> parsed to the commmand
+flags2=&79;												Bit 0 - set if 
+													;	Bit 1 - set if 
+													;	Bit 2 - set if 
+													;	Bit 3 - set if 
+													;	Bit 4 - set if 
+													;	Bit 5 - set if 
+													;	Bit 6 - set if 
+													;	Bit 7 - set if the timer has passed zero and is in count up mode
+evntv_old=&7A;			(&7A and &7B)
+filename_address=&7C;	(&7C, &7D, &7E, &7F)			Pointer to the <fsp> parsed to the commmand
 													;	Frustratingly, osargs, requires this block to be in zp
 \ final_bytes=&7F;									; 	the number of bytes in the final page of the tune													
 \\final_bytes isn't working at the moment
@@ -59,6 +65,7 @@ filename_address=&7B;	(&7B, &7C, &7D, &7E)			Pointer to the <fsp> parsed to the 
 	STA delay
 	STA delay+1
 	STA flags
+	STA flags2
 
 \\get value for top_page
 	LDA #&84
@@ -114,19 +121,6 @@ filename_address=&7B;	(&7B, &7C, &7D, &7E)			Pointer to the <fsp> parsed to the 
 	ORA #%00000100;			set bit 2
 	STA old_event_status
 .character_not_set
-
-\\consider changing the playback timer to use vsync for timing
-\\in which case, we will not need this event
-\\enable timer zero events
-	LDA #&0E;				enable event
-	LDX #5;					timer event
-	JSR osbyte
-	TXA
-	BEQ timer_zero_not_set
-	LDA old_event_status
-	ORA #%00100000;			set bit 5
-	STA old_event_status
-.timer_zero_not_set
 
 \\enable vsync events
 	LDA #&0E;			enable event
@@ -458,9 +452,9 @@ ENDIF
 	ORA #%00000001;						set bit 0 to show that mem_ptr is in head_page
 	STA flags
 
+
 \\==============================================================================
 \\This whole section is concerned with setting up the timer in Juke Box
-\\We should rewrite this to use vsync for timing - much less demand on processor
 \\setup on screen timer
 \\place the colons
 	LDA #':'
@@ -468,8 +462,7 @@ ENDIF
 	LDA #'.'
 	STA bottom_row+37
 
-\\calculate timer value
-\\we need to divide the timer value from the header by 10
+\\calculate timer values
 \\this will crash if we have a tune that lasts longer than &FFFF hundredths of a second (i.e. more than 10 minutes 55 seconds )
 	
 \\load length_MS into dividend_lo and dividend_hi
@@ -491,40 +484,55 @@ ENDIF
 \\now do the division
 	JSR long_division
 	
-\\copy result into duration
-	LDA quotient
-	STA duration
-	LDA quotient+1
-	STA duration+1
+\\the length in centiseconds is now in dividend_lo
+\\clear out dividend_hi
 	LDA #0
-	STA duration+2
-	STA duration+3
-	STA duration+4
+	STA dividend_hi
+	STA dividend_hi+1
 
-\\calculate the inverse of this (interval timer counts up)	
-	SEC
+\\load 100 into divisor
+	LDA #100
+	STA divisor
 	LDA #0
-	SBC duration
-	STA duration
-	LDA #0
-	SBC duration+1
-	STA duration+1
-	LDA #0
-	SBC duration+2
-	STA duration+2
-	LDA #0
-	SBC duration+3
-	STA duration+3
-	LDA #0
-	SBC duration+4
-	STA duration+4
+	STA divisor+1
 	
-\\put value in interval timer
-	LDA #&4;			write interval timer
-	LDX #LO(duration)
-	LDY #HI(duration)
-	JSR osword
+\\now do the division
+	JSR long_division
+	
+\\the remainder represents the number of centiseconds
+	LDA remainder
+	STA hundredths
+	
+\\make sure hundredths is even
+	LDA #%00000001
+	BIT hundredths
+	BEQ even;					branch if the LSB is zero (i.e. even)
+	DEC hundredths; reduce by 1 to get even number
+.even
+	
+\\the length in seconds is now in dividend_lo
+\\clear out dividend_hi
+	LDA #0
+	STA dividend_hi
+	STA dividend_hi+1
 
+\\load 60 into divisor
+	LDA #60
+	STA divisor
+	LDA #0
+	STA divisor+1
+	
+\\now do the division
+	JSR long_division
+	
+\\the remainder represents the number of seconds
+	LDA remainder
+	STA seconds
+	
+\\the quotient represents the number of minutes
+	LDA quotient
+	STA minutes
+	
 \\iindicate that on screen timer is ready
 	LDA flags
 	ORA #%00100000;			set bit 5 (on screen timer ready)
@@ -594,17 +602,6 @@ INCLUDE "src\jukebox\loader.s.6502"
 	LDY #0;						because AUG says this is required
 	JSR osbyte
 .leave_vsync_event_set
-
-\\restore timer zero event status
-\\this won't be needed if we rewrite the timer to use vsync
-	LDA #%00100000;				check if bit 5 set
-	BIT old_event_status
-	BNE leave_timer_event_set
-	LDA #&0D;					disable event
-	LDX #5;						timer event code
-	LDY #0;						because AUG says this is required
-	JSR osbyte
-.leave_timer_event_set
 
 \\restore escape event status
 	LDA #%01000000;				check if bit 6 set
@@ -707,9 +704,9 @@ INCLUDE "src\jukebox\long_division.s.6502"
 	EQUB &00
 .hundredths
 	EQUB &00
-.duration
-	EQUD &00000000
-	EQUB &00
+\ .duration
+	\ EQUD &00000000
+	\ EQUB &00
 
 \\this is only used for the debugging display at the bottom of the screen
 \\ISN'T THIS USED FOR THE ON-SCREEN TIMER TOO?

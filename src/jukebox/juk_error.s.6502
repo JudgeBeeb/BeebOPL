@@ -44,17 +44,6 @@
 	JSR osbyte
 .leave_vsync_event_set
 
-\\restore timer zero event status
-\\THIS WON'T BE NEEDED IF WE REWRITE THE TIMER
-	LDA #%00100000;				check if bit 5 set
-	BIT old_event_status
-	BNE leave_timer_event_set
-	LDA #&0D;					disable event
-	LDX #5;						timer event code
-	LDY #0;						because AUG says this is required
-	JSR osbyte
-.leave_timer_event_set
-
 \\restore escape event status
 	LDA #%01000000;				check if bit 6 set
 	BIT old_event_status
@@ -105,7 +94,7 @@
 .syntax_error
 	BRK;					BRK opcode
 	EQUB 65;				error number
-	EQUS "Syntax: DROPLAY (<fsp>)(-TEST)"
+	EQUS "Syntax: JUKPLAY (<fsp>)(-TEST)"
 	EQUB 0;					message termination character
 .card_ok
 	BRK;					BRK opcode
