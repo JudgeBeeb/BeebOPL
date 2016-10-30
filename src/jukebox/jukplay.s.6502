@@ -416,7 +416,7 @@ ENDIF
 \\this error is really intended to identify whether there are such files, in the field
 {
 	LDA #%00000001;						odd binary numbers always have a LSB of 1
-	BIT .cmd_table_size
+	BIT cmd_table_size
 	BEQ even_number;					the result will be zero if the number is even
 	LDX #LO(odd_number)
 	LDY #HI(odd_number)

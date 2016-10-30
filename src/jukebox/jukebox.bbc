@@ -1,85 +1,85 @@
-  100 REM===================================================================
-  200 REM
-  300 REM intial setup
-  400 ON ERROR GOTO 5500
-  500 CLS
-  600 MODE 0
-  700 VDU 23;8202;0;0;0;:REM hide cursor
-  800 VDU 19,0,6,0,0,0:VDU 19,1,5,0,0,0:REM change colour scheme
-  900 *LOAD LOGO
- 1000 COLOUR 0: COLOUR 129
- 1100 PRINT TAB(30,25); "JUKE BOX Loading..."
- 1200 pausetime=TIME+300
- 1300 REPEAT UNTIL TIME>=pausetime
- 1400 MODE 7
- 1500 VDU 23;8202;0;0;0;:REM hide cursor
- 1600 old_himem=HIMEM
- 1700 HIMEM=&2500
- 1800 REM change the function keys to produce single ascii values
- 1900 *FX 225,128
- 2000 PRINT
- 2100 PRINT CHR$(133);CHR$(157);CHR$(135);"f1:Play All";TAB(15);"ESCAPE:Stop";TAB(29);"f9:Quit"
- 2200 PRINT CHR$(133);CHR$(157);CHR$(134);CHR$(141);TAB(16);"JUKE BOX"
- 2300 PRINT CHR$(133);CHR$(157);CHR$(134);CHR$(141);TAB(16);"JUKE BOX"
- 2400 PRINT CHR$(133);CHR$(157)
- 2500 REM=================================================================
- 2600 REM
- 2700 REM open file, load track data and draw menu
- 2800 handle%=OPENIN("JUKEDAT")
- 2900 INPUT#handle%,tracks%
- 3000 DIM file$(tracks%), title$(tracks%)
- 3100 FOR n%=1 TO tracks%
- 3200 INPUT#handle%,file$(n%),title$(n%)
- 3300 IF (n% MOD 2)=0 THEN PRINT CHR$(135);CHR$(157);CHR$(133);CHR$(137);CHR$(n%+64);":";TAB(6);title$(n%) ELSE PRINT CHR$(133);CHR$(157);CHR$(134);CHR$(137);CHR$(n%+64);":";TAB(6);title$(n%)
- 3400 NEXT n%
- 3500 CLOSE#handle%
- 3600 FOR x%=tracks%+1 TO 9
- 3700 PRINT CHR$(135);CHR$(157)
- 3800 PRINT CHR$(133);CHR$(157);CHR$(134)
- 3900 NEXT x%
- 4000 REM=================================================================
- 4100 REM
- 4200 REM wait for key press
- 4300 REPEAT
- 4400 key%=GET
- 4500 IF key%=&81 GOSUB 6800
- 4600 IF key%=&89 GOTO 7900
- 4700 selection%=key%-ASC("@")
- 4800 IF selection%<1 OR selection%>tracks% THEN GOTO 4400
- 4900 PRINT TAB(3,selection%+4);CHR$(136);
- 5000 OSCLI "JUKPLAY "+file$(selection%)
- 5100 PRINT TAB(3,selection%+4);CHR$(137);
- 5200 REM flush keyboard buffer
- 5300 *FX 21,0
- 5400 UNTIL FALSE
- 5500 REM===================================================================
- 5600 REM
- 5700 REM error handler
- 5800 FOR line%=1 TO tracks%
- 5900 PRINT TAB(3,line%+4);CHR$(137);
- 6000 NEXT line%
- 6100 REM flush keyboard buffer
- 6200 *FX 21,0
- 6300 IF ERR=17 THEN GOTO 4300: REM ESCAPE
- 6400 IF ERR=97 THEN GOTO 7900: REM f9
- 6500 REPORT
- 6600 PRINT " at line "; ERL
- 6700 END
- 6800 REM==================================================================
- 6900 REM
- 7000 REM routine to play all tracks
- 7100 FOR all%=1 TO tracks%
- 7200 PRINT TAB(3,all%+4);CHR$(136);
- 7300 OSCLI "JUKPLAY "+file$(all%)
- 7400 PRINT TAB(3,all%+4);CHR$(137);
- 7500 pausetime=TIME+400
- 7600 REPEAT UNTIL TIME>=pausetime
- 7700 NEXT all%
- 7800 RETURN
- 7900 REM==================================================================
- 8000 REM
- 8100 REM end routine
- 8200 HIMEM=old_himem
- 8300 *FX 225,1
- 8400 REM reset function keys to normal
- 8500 MODE 7
+   10 REM===================================================================
+   20 REM
+   30 REM intial setup
+   40 ON ERROR GOTO 550
+   50 CLS
+   60 MODE 0
+   70 VDU 23;8202;0;0;0;:REM hide cursor
+   80 VDU 19,0,6,0,0,0:VDU 19,1,5,0,0,0:REM change colour scheme
+   90 *LOAD LOGO
+  100 COLOUR 0: COLOUR 129
+  110 PRINT TAB(30,25); "JUKE BOX Loading..."
+  120 pausetime=TIME+300
+  130 REPEAT UNTIL TIME>=pausetime
+  140 MODE 7
+  150 VDU 23;8202;0;0;0;:REM hide cursor
+  160 old_himem=HIMEM
+  170 HIMEM=&2500
+  180 REM change the function keys to produce single ascii values
+  190 *FX 225,128
+  200 PRINT
+  210 PRINT CHR$(133);CHR$(157);CHR$(135);"f1:Play All";TAB(15);"ESCAPE:Stop";TAB(29);"f9:Quit"
+  220 PRINT CHR$(133);CHR$(157);CHR$(134);CHR$(141);TAB(16);"JUKE BOX"
+  230 PRINT CHR$(133);CHR$(157);CHR$(134);CHR$(141);TAB(16);"JUKE BOX"
+  240 PRINT CHR$(133);CHR$(157)
+  250 REM=================================================================
+  260 REM
+  270 REM open file, load track data and draw menu
+  280 handle%=OPENIN("JUKEDAT")
+  290 INPUT#handle%,tracks%
+  300 DIM file$(tracks%), title$(tracks%)
+  310 FOR n%=1 TO tracks%
+  320 INPUT#handle%,file$(n%),title$(n%)
+  330 IF (n% MOD 2)=0 THEN PRINT CHR$(135);CHR$(157);CHR$(133);CHR$(137);CHR$(n%+64);":";TAB(6);title$(n%) ELSE PRINT CHR$(133);CHR$(157);CHR$(134);CHR$(137);CHR$(n%+64);":";TAB(6);title$(n%)
+  340 NEXT n%
+  350 CLOSE#handle%
+  360 FOR x%=tracks%+1 TO 13
+  370 IF (tracks% MOD 2)=0 THEN PRINT CHR$(133);CHR$(157);CHR$(134):PRINT CHR$(135);CHR$(157) ELSE PRINT CHR$(135);CHR$(157):PRINT CHR$(133);CHR$(157);CHR$(134)
+  380 NEXT x%
+  390 IF (tracks% MOD 2)=0 THEN PRINT CHR$(133);CHR$(157);CHR$(134)
+  400 REM=================================================================
+  410 REM
+  420 REM wait for key press
+  430 REPEAT
+  440 key%=GET
+  450 IF key%=&81 GOSUB 680
+  460 IF key%=&89 GOTO 790
+  470 selection%=key%-ASC("@")
+  480 IF selection%<1 OR selection%>tracks% THEN GOTO 440
+  490 PRINT TAB(3,selection%+4);CHR$(136);
+  500 OSCLI "JUKPLAY "+file$(selection%)
+  510 PRINT TAB(3,selection%+4);CHR$(137);
+  520 REM flush keyboard buffer
+  530 *FX 21,0
+  540 UNTIL FALSE
+  550 REM===================================================================
+  560 REM
+  570 REM error handler
+  580 FOR line%=1 TO tracks%
+  590 PRINT TAB(3,line%+4);CHR$(137);
+  600 NEXT line%
+  610 REM flush keyboard buffer
+  620 *FX 21,0
+  630 IF ERR=17 THEN GOTO 430: REM ESCAPE
+  640 IF ERR=97 THEN GOTO 790: REM f9
+  650 REPORT
+  660 PRINT " at line "; ERL
+  670 END
+  680 REM==================================================================
+  690 REM
+  700 REM routine to play all tracks
+  710 FOR all%=1 TO tracks%
+  720 PRINT TAB(3,all%+4);CHR$(136);
+  730 OSCLI "JUKPLAY "+file$(all%)
+  740 PRINT TAB(3,all%+4);CHR$(137);
+  750 pausetime=TIME+400
+  760 REPEAT UNTIL TIME>=pausetime
+  770 NEXT all%
+  780 RETURN
+  790 REM==================================================================
+  800 REM
+  810 REM end routine
+  820 HIMEM=old_himem
+  830 *FX 225,1
+  840 REM reset function keys to normal
+  850 MODE 7
