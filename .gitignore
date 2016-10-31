@@ -1,32 +1,8 @@
-#ignore the /old_code directory
-/old_code
+#ignore the /private directory
+/private
 
 #ignore everything in the /eagle directory
 /eagle/*
 #except .sch and .brd files
 !/eagle/*.sch
 !/eagle/*.brd
-
-#ignore everything in the /docs directory
-/docs/*
-#except the ones I choose to add
-!/docs/schematic.pdf
-!/docs/pcb_top.png
-!/docs/pcb_bottom.png
-!/docs/user_guide.pdf
-
-#ignore the /opl3 directory because that is for later...
-/opl3
-
-#ignore the /reference directory because that is just for me...
-/reference
-
-#ignore music files that have a corrupted ending
-/music/*.noend
-
-#ignore the /driver directory until there is somethng worthwhile in there
-/driver
-
-#ignore the /src/droplay/meter directory until there is somethng worthwhile in there
-/src/droplay/meter
-
