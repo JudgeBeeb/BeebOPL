@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.6.0">
+<eagle version="7.7.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -22407,9 +22407,9 @@ filter</text>
 <wire x1="-182.88" y1="-134.62" x2="2.54" y2="-134.62" width="0.1524" layer="97"/>
 <text x="-177.8" y="-132.08" size="12.7" layer="97" font="vector">TITLE: BeebOPL</text>
 <wire x1="-182.88" y1="-157.48" x2="2.54" y2="-157.48" width="0.1524" layer="97"/>
-<text x="-175.26" y="-152.4" size="10.16" layer="97" font="vector">REVISION: 1.00</text>
+<text x="-175.26" y="-152.4" size="10.16" layer="97" font="vector">REVISION: 1.01</text>
 <wire x1="-182.88" y1="-180.34" x2="2.54" y2="-180.34" width="0.1524" layer="97"/>
-<text x="-175.26" y="-175.26" size="10.16" layer="97" font="vector">DATE: 2 October 2016</text>
+<text x="-175.26" y="-175.26" size="9.398" layer="97" font="vector">DATE: 31 October 2016</text>
 <text x="-96.52" y="-50.8" size="1.778" layer="97" rot="R90">Divide track to use
 12v from power jack</text>
 <text x="-57.15" y="-81.28" size="1.778" layer="97" rot="R270">Divide track to use

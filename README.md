@@ -40,7 +40,7 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [x] ~~Juke Box inexplicably occasionally reports "BeebOPL card not found".~~
 
-- [ ] The 3.5mm jack socket is about 1mm too far over to the left and therefore does not fit well. This needs to be corrected if another run of boards is done.
+- [x] ~~The 3.5mm jack socket is about 1mm too far over to the left and therefore does not fit well. This needs to be corrected if another run of boards is done.~~
 
 Further down the line, I would like to see if the use of [Exomiser] (http://hem.bredband.net/magli143/exo/) could be incorporated.
 
