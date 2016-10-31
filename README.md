@@ -28,17 +28,17 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [x] ~~Check if the entire DRO file will fit in memory and, if so, load it with `OSFILE` rather than `OSGBPB` to speed up loading times.~~
 
-- [ ] Address continuing minor timing issues. ~~DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond.~~ 
+- [ ] Address continuing minor timing issues. (These seem to be getting worse!) ~~DRO timing data is based on milliseconds. The YM3812 timer updates every 80 microseconds and therefore cannot measure precisely one millisecond.~~ 
 
-- [x] ~~Check to see if player has overtaken buffer and issue error~~
+- [x] ~~Check to see if player has overtaken buffer and issue error.~~
+
+- [x] Find a neat way to deal with buffering messages in Juke Box.
 
 - [x] ~~The registers are flushed too soon. Need to leave time for the last note to fade.~~
 
 - [x] ~~Generally tidy up code; in particular using curly braces and local variables.~~
 
 - [x] ~~Juke Box inexplicably occasionally reports "BeebOPL card not found".~~
-
-- [ ] Add the Juke Box timer to Droplay as an option using a command line switch.
 
 - [ ] The 3.5mm jack socket is about 1mm too far over to the left and therefore does not fit well. This needs to be corrected if another run of boards is done.
 
