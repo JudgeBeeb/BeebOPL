@@ -8,10 +8,10 @@
 \\ - consider stripping out everything that isn't essential to the Juke Box program
 
 
-beebem=FALSE;							Set to true if running in BeebEm for debugging
+beebem=TRUE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
 							
-ORG &2500
+ORG &2D00
 
 INCLUDE "lib\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
@@ -336,6 +336,7 @@ ENDIF
 \\Warn the user we are in for a bit of a wait
 \\If we ever have a file that big to play in Juke Box
 \\This is going to mess up the screen
+	LDA #31:JSR oswrch:LDA #0:JSR oswrch:LDA #24:JSR oswrch
 	JSR print_text
 	EQUS "Buffering. Please wait... ", 0
 
@@ -346,8 +347,9 @@ ENDIF
 	JSR osgbpb
 
 \\tell user we are done
+	LDA #31:JSR oswrch:LDA #0:JSR oswrch:LDA #24:JSR oswrch
 	JSR print_text
-	EQUS "Done!", 13, 0
+	EQUS "                         ", 0
 		
 .data_in_memory	
 \\check if DRO file

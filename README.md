@@ -32,7 +32,7 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [x] ~~Check to see if player has overtaken buffer and issue error.~~
 
-- [x] Find a neat way to deal with buffering messages in Juke Box.
+- [x] ~~Find a neat way to deal with buffering messages in Juke Box.~~
 
 - [x] ~~The registers are flushed too soon. Need to leave time for the last note to fade.~~
 
