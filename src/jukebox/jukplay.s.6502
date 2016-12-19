@@ -8,10 +8,10 @@
 \\ - consider stripping out everything that isn't essential to the Juke Box program
 
 
-beebem=TRUE;							Set to true if running in BeebEm for debugging
+beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
 							
-ORG &2D00
+ORG &2500
 
 INCLUDE "lib\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
