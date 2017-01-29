@@ -11,7 +11,7 @@
 beebem=FALSE;							Set to true if running in BeebEm for debugging
 									;	Otherwise, set to false if running on native hardware
 							
-ORG &2500
+ORG &2600
 
 INCLUDE "lib\beeb.h.6502";				Contains definitions for the MOS API calls, etc.
  
