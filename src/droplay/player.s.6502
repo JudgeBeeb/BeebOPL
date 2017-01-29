@@ -1,18 +1,20 @@
 .irq_handler
 	LDA &FC:PHA:TXA:PHA:TYA:PHA
+		
 \\check if this interrupt is for us
 \\both bits 6 and 7 of the status byte should be set
 \\why do I need to test for both? In what circumstances would bit 6 be set but not bit 7?
 	BIT ymaddr;						both V (bit 6) and N (bit 7) should now be set
-	\ BPL done_irq;					branch if N=0
-	BVC done_irq;					branch of V=0
-
+	\\BPL done_irq;					branch if N=0
+	BVC done_irq;					branch if V=0
+	
 \\reset IRQ
 	LDA #&04
 	STA ymaddr
+	NOP:NOP:NOP:NOP:NOP:NOP
 	LDA #&80
 	STA ymdata
-
+	
 \\check if end of tune or lapped loader or escape key pressed
 	LDA #%00001110;					test bit 1 (end of tune); bit 2 (lapped loader); bit 3 (escape)
 	BIT flags
@@ -27,6 +29,7 @@
 	DEC delay+1;					decrement MSB
 .lsb_delay_dec
 	DEC delay;						decrement LSB
+	
 \\============================================================================
 
 .done_irq
