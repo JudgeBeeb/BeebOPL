@@ -42,6 +42,8 @@ All disc reads take place in the foreground. The music player itself is an inter
 
 - [x] ~~The 3.5mm jack socket is about 1mm too far over to the left and therefore does not fit well. This needs to be corrected if another run of boards is done.~~
 
+- [] There is an error on the PCB silk screen at the 'floppy' style power connector. 5v and 12v are reversed.
+
 Further down the line, I would like to see if the use of [Exomiser] (http://hem.bredband.net/magli143/exo/) could be incorporated.
 
 I would also like to see if I could include **kieranhj**'s direct track loading routines using `OSWORD` (which he uses in his amazing [Mode 7 Video] (https://github.com/kieranhj/mode7-video) project). This may resolves the problems associated with `OSGBPB`.
