@@ -78,7 +78,7 @@
 	
 \\if it isn't a delay it must be a command code
 	TAX;									put the value into X to use it as an offset in the command table
-	LDA cmd_table, X;						get the register address from the command table
+	LDA  _table, X;						get the register address from the command table
 	STA ymaddr;								and send it to ymaddr
 	
 	INY;									proceed to the next byte 
